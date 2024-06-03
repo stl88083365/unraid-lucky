@@ -42,7 +42,7 @@ Default Password : 666
 <INLINE>
 
 # Define Variables
-echo "1"
+echo "1" >> /boot/log
 PACKAGE="unraid-lucky"
 DL_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$soft"
 
@@ -70,7 +70,8 @@ fi
 
 download() {
 # Download lucky
-echo 
+echo
+DL_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$soft"
 if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${soft}/${LAT_PACKAGE}" "${DL_URL}/${LAT_PACKAGE}" ; then
   wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${soft}/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
   if [ "$(md5sum &packages;/${soft}/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${soft}/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
