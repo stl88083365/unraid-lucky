@@ -40,7 +40,7 @@ Default Password : 666
 
 <FILE Run="/bin/bash">
 <INLINE>
-
+SOFT_V="$(uname -r)"
 download() {
 # Download lucky
 if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${SOFT_V%%-*}/${LAT_PACKAGE}" "${DL_URL}/${LAT_PACKAGE}" ; then
