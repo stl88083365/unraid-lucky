@@ -1,17 +1,16 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
-  <!ENTITY name      "lucky">
+  <!ENTITY name      "unraid-lucky">
   <!ENTITY author    "stl88083365">
   <!ENTITY version   "2024.06.03">
-  <!ENTITY soft      "v1.0">
-  <!ENTITY gitURL    "https://github.com/&author;/unraid-&name;/raw/master">
-  <!ENTITY pluginURL "&gitURL;/&name;.plg">
+  <!ENTITY softVER   "v1.0">
+  <!ENTITY gitURL    "https://github.com/&author;/&name;/releases/download">
+  <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/&name;/master/&name;.plg">
   <!ENTITY plugin    "/boot/config/plugins/&name;">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
-  <!ENTITY packages  "/boot/config/plugins/&name;/packages">
 ]>
 
-<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" soft="&soft;" min="6.9.0-RC2" icon="hdd-o" >
+<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.10.0">
 
 <CHANGES>
 
@@ -19,6 +18,16 @@
 - Tested ...
 
 </CHANGES>
+
+<FILE Run="/bin/bash">
+<INLINE>
+rm -f $(ls /boot/config/plugins/&name;/unraid-lucky* 2>/dev/null|grep -v '&version;')
+</INLINE>
+</FILE>
+
+<FILE Name="/boot/config/plugins/&name;/unraid-lucky.txz" Run="upgradepkg --install-new">
+<URL>&gitURL;/&softVER;/unraid-lucky.txz</URL>
+</FILE>
 
 <FILE Name="&emhttp;/README.md">
 <INLINE>
@@ -40,6 +49,7 @@ Default Password : 666
 
 <FILE Run="/bin/bash">
 <INLINE>
+
 download() {
 # Download lucky
 echo 
