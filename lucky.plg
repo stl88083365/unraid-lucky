@@ -1,16 +1,17 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
-  <!ENTITY name      "unraid-lucky">
+  <!ENTITY name      "lucky">
   <!ENTITY author    "stl88083365">
   <!ENTITY version   "2024.06.03">
-  <!ENTITY softVER   "v1.0">
-  <!ENTITY gitURL    "https://github.com/&author;/&name;/releases/download">
-  <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/&name;/master/&name;.plg">
+  <!ENTITY soft      "v1.0">
+  <!ENTITY gitURL    "https://github.com/&author;/unraid-&name;/raw/master">
+  <!ENTITY pluginURL "&gitURL;/&name;.plg">
   <!ENTITY plugin    "/boot/config/plugins/&name;">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
+  <!ENTITY packages  "/boot/config/plugins/&name;">
 ]>
 
-<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.10.0">
+<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" soft="&soft;" min="6.9.0-RC2" icon="hdd-o" >
 
 <CHANGES>
 
@@ -18,16 +19,6 @@
 - Tested ...
 
 </CHANGES>
-
-<FILE Run="/bin/bash">
-<INLINE>
-rm -f $(ls /boot/config/plugins/&name;/unraid-lucky* 2>/dev/null|grep -v '&version;')
-</INLINE>
-</FILE>
-
-<FILE Name="/boot/config/plugins/&name;/unraid-lucky.txz" Run="upgradepkg --install-new">
-<URL>&gitURL;/&softVER;/unraid-lucky.txz</URL>
-</FILE>
 
 <FILE Name="&emhttp;/README.md">
 <INLINE>
@@ -50,12 +41,39 @@ Default Password : 666
 <FILE Run="/bin/bash">
 <INLINE>
 
+# Define Variables
+echo "1"
+PACKAGE="unraid-lucky"
+DL_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$soft"
+
+if [ ! -d "&packages;/${soft}" ]; then
+  mkdir -p "&packages;/${soft}"
+fi
+
+# Check for old packages
+rm -rf $(ls -d &packages;/* | grep -v "${soft}")
+
+# Check if lucky is allready downloaded and installed
+check
+if [ ! -z "$(pidof lucky)" ]; then
+    echo
+    echo "------------------Installation of lucky successful---------------------"
+    echo
+else
+    echo
+    echo "-------------------Installing lucky, please wait...!-------------------"
+    install > /dev/null
+    echo
+    echo "------------------Installation of lucky successful---------------------"
+    echo
+fi
+
 download() {
 # Download lucky
 echo 
-if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${soft%%-*}/${LAT_PACKAGE}" "${DL_URL}/${LAT_PACKAGE}" ; then
-  wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${soft%%-*}/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
-  if [ "$(md5sum &packages;/${soft%%-*}/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${soft%%-*}/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
+if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${soft}/${LAT_PACKAGE}" "${DL_URL}/${LAT_PACKAGE}" ; then
+  wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${soft}/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
+  if [ "$(md5sum &packages;/${soft}/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${soft}/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
     echo
     echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
     echo "--------------------------------CHECKSUM ERROR!---------------------------------"
@@ -74,7 +92,7 @@ fi
 }
 
 check() {
-if ! ls -1 &packages;/${soft%%-*}/ | grep -q "${PACKAGE}" ; then
+if ! ls -1 &packages;/${soft}/ | grep -q "${PACKAGE}" ; then
   LAT_PACKAGE="$(wget -qO- https://api.github.com/repos/stl88083365/unraid-lucky/releases/tags/${soft} | jq -r '.assets[].name' | grep "${PACKAGE}" | grep -E -v '\.md5$' | sort -V | tail -1)"
   echo
   echo "-----------------Downloading lucky, please wait...!--------------------"
@@ -95,7 +113,7 @@ else
     echo "Directory /boot/config/lucky already exists."
 fi
 
-/sbin/installpkg "&packages;/${soft%%-*}/${PACKAGE}*.txz"
+/sbin/installpkg "&packages;/${soft}/${PACKAGE}*.txz"
 
 chmod +x /etc/lucky/lucky
 
@@ -110,33 +128,6 @@ else
 fi
 /etc/lucky/lucky -c /boot/config/lucky/lucky.conf
 }
-
-# Define Variables
-echo "1"
-PACKAGE="lucky"
-DL_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$soft"
-
-if [ ! -d "&packages;/${soft%%-*}" ]; then
-  mkdir -p "&packages;/${soft%%-*}"
-fi
-
-# Check for old packages
-rm -rf $(ls -d &packages;/* | grep -v "${soft%%-*}")
-
-# Check if lucky is allready downloaded and installed
-check
-if [ ! -z "$(pidof lucky)" ]; then
-    echo
-    echo "------------------Installation of lucky successful---------------------"
-    echo
-else
-    echo
-    echo "-------------------Installing lucky, please wait...!-------------------"
-    install > /dev/null
-    echo
-    echo "------------------Installation of lucky successful---------------------"
-    echo
-fi
 
 </INLINE>
 </FILE>
