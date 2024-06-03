@@ -1,0 +1,159 @@
+<?xml version='1.0' standalone='yes'?>
+<!DOCTYPE PLUGIN [
+  <!ENTITY name      "lucky">
+  <!ENTITY author    "stl88083365">
+  <!ENTITY version   "2024.06.03">
+  <!ENTITY SOFT_V    "v1.0">
+  <!ENTITY gitURL    "https://github.com/&author;/unraid-&name;/raw/master">
+  <!ENTITY pluginURL "&gitURL;/&name;.plg">
+  <!ENTITY plugin    "/boot/config/plugins/&name;">
+  <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
+  <!ENTITY packages  "/boot/config/plugins/&name;/packages">
+]>
+
+<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" SOFT_V="&SOFT_V;" min="6.9.0-RC2" icon="hdd-o" >
+
+<CHANGES>
+
+###2024.06.03
+- Tested ...
+
+</CHANGES>
+
+<FILE Name="&emhttp;/README.md">
+<INLINE>
+**lucky**
+
+For further information go to the source Github repository: https://github.com/stl88083365/unraid-lucky .  
+  
+Lucky is highly customizable and supports the running of various custom scripts.
+However, once the account password and backend entrance are leaked, it may bring unforeseen consequences.
+Therefore, it is very important to set up a secure portal.
+When you set the secure entry to 666, the Lucky login page will not be displayed when you visit http://{IP}:16601.
+Instead, you will need to visit http://{IP}:16601/666. Therefore, please try to make the secure entry as complex as possible and use HTTPS when accessing from outside the network.
+
+Default login : http://{IP address}:16601
+Default Account Number : 666
+Default Password : 666
+</INLINE>
+</FILE>
+
+<FILE Run="/bin/bash">
+<INLINE>
+SOFT_V="$(uname -r)"
+download() {
+# Download lucky
+if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${SOFT_V%%-*}/${LAT_PACKAGE}" "${DL_URL}/${LAT_PACKAGE}" ; then
+  wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${SOFT_V%%-*}/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
+  if [ "$(md5sum &packages;/${SOFT_V%%-*}/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${SOFT_V%%-*}/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
+    echo
+    echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
+    echo "--------------------------------CHECKSUM ERROR!---------------------------------"
+    rm -rf &plugin; &emhttp;
+    exit 1
+  fi
+  echo
+  echo "-------------Successfully downloaded lucky, please wait...!------------"
+else
+  echo
+  echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR-----"
+  echo "------------------------Can't download lucky---------------------------"
+  rm -rf &plugin; &emhttp;
+  exit 1
+fi
+}
+
+check() {
+if ! ls -1 &packages;/${SOFT_V%%-*}/ | grep -q "${PACKAGE}" ; then
+  LAT_PACKAGE="$(wget -qO- https://api.github.com/repos/stl88083365/unraid-lucky/releases/tags/${SOFT_V} | jq -r '.assets[].name' | grep "${PACKAGE}" | grep -E -v '\.md5$' | sort -V | tail -1)"
+  echo
+  echo "-----------------Downloading lucky, please wait...!--------------------"
+  echo "-----------This could take some time, please don't close this window!----------"
+  download
+else
+  echo
+  echo "-------------------------lucky found locally!--------------------------"
+fi
+}
+
+install() {
+# Install lucky
+if [ ! -d /boot/config/lucky ]; then
+    echo "Directory /boot/config/lucky does not exist, creating it now..."
+    mkdir -p /boot/config/lucky
+else
+    echo "Directory /boot/config/lucky already exists."
+fi
+
+/sbin/installpkg "&packages;/${SOFT_V%%-*}/${PACKAGE}*.txz"
+
+chmod +x /etc/lucky/lucky
+
+CRON_JOB="*/1 * * * * test -z "$(pidof lucky)" && /etc/lucky/lucky -c /boot/config/lucky/lucky.conf  >/dev/null 2>&1"
+
+crontab -l | grep -q "$CRON_JOB"  && echo "Mandate already exists" || (crontab -l; echo "$CRON_JOB") | crontab -
+
+if [ $? -eq 0 ]; then
+  echo "Timed task added successfully"
+else
+  echo "Failed to add a timed task"
+fi
+/etc/lucky/lucky -c /boot/config/lucky/lucky.conf
+}
+
+# Define Variables
+PACKAGE="lucky"
+DL_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$SOFT_V"
+
+if [ ! -d "&packages;/${SOFT_V%%-*}" ]; then
+  mkdir -p "&packages;/${SOFT_V%%-*}"
+fi
+
+# Check for old packages
+rm -rf $(ls -d &packages;/* | grep -v "${SOFT_V%%-*}")
+
+# Check if lucky is allready downloaded and installed
+check
+if [ ! -z "$(pidof lucky)" ]; then
+    echo
+    echo "------------------Installation of lucky successful---------------------"
+    echo
+else
+    echo
+    echo "-------------------Installing lucky, please wait...!-------------------"
+    install > /dev/null
+    echo
+    echo "------------------Installation of lucky successful---------------------"
+    echo
+fi
+
+</INLINE>
+</FILE>
+
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+
+echo "---------------------------------------"
+echo "------Uninstalling lucky-------"
+echo "---------------------------------------"
+# Remove plugin related files
+PID=$(pidof lucky)
+if [ ! -z "$PID" ]; then
+    echo "Lucky process is running. Stopping it..."
+    kill $PID
+    wait $PID 2>/dev/null
+    echo "Lucky process has been stopped."
+else
+    echo "Lucky process is not running."
+fi
+rm -rf &plugin;
+rm -rf &emhttp;
+echo
+echo "----------------------------------------------------------------------------"
+echo "----------lucky uninstalled, please reboot your server!-------------"
+echo "----------------------------------------------------------------------------"
+echo
+
+</INLINE>
+</FILE>
+</PLUGIN>
