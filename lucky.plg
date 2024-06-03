@@ -45,31 +45,4 @@ echo "test----test----test----test----test----test----test----test----"
 
 </INLINE>
 </FILE>
-
-<FILE Run="/bin/bash" Method="remove">
-<INLINE>
-
-echo "---------------------------------------"
-echo "------Uninstalling lucky-------"
-echo "---------------------------------------"
-# Remove plugin related files
-PID=$(pidof lucky)
-if [ ! -z "$PID" ]; then
-    echo "Lucky process is running. Stopping it..."
-    kill $PID
-    wait $PID 2>/dev/null
-    echo "Lucky process has been stopped."
-else
-    echo "Lucky process is not running."
-fi
-rm -rf &plugin;
-rm -rf &emhttp;
-echo
-echo "----------------------------------------------------------------------------"
-echo "----------lucky uninstalled, please reboot your server!-------------"
-echo "----------------------------------------------------------------------------"
-echo
-
-</INLINE>
-</FILE>
 </PLUGIN>
