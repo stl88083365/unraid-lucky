@@ -65,7 +65,7 @@ chmod +x /etc/lucky/lucky
 download() {
 echo "2" >> /boot/1.log
 echo "/boot/config/plugins/lucky/$VER_P/$LAT_PACKAGE" >> /boot/1.log
-if [ ！-f /boot/config/plugins/lucky/$VER_P/$LAT_PACKAGE ]; then
+if [ -f /boot/config/plugins/lucky/$VER_P/$LAT_PACKAGE ]; then
   echo "/boot/config/plugins/lucky/$VER_P/$LAT_PACKAGE" >> /boot/1.log
   echo "2.5" >> /boot/1.log
   wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE" "$GIT_URL/$LAT_PACKAGE"
