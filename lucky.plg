@@ -44,7 +44,7 @@ Default Password : 666
 <INLINE>
 
 install() {
-echo "1" >> /boot/1.log
+
 if [ ! -d /boot/config/lucky ]; then
     echo "Directory /boot/config/lucky does not exist, creating it now..."
     mkdir -p /boot/config/lucky
@@ -63,14 +63,11 @@ chmod +x /etc/lucky/lucky
 }
 
 download() {
-echo "2" >> /boot/1.log
+
 if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
-  echo "/boot/config/plugins/lucky/$VER_P/$LAT_PACKAGE" >> /boot/1.log
-  echo "2.5" >> /boot/1.log
   wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE" "$GIT_URL/$LAT_PACKAGE"
   wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE.md5" "$GIT_URL/$LAT_PACKAGE.md5"
     if [ "$(md5sum "$PLUGIN_DIR/$LAT_PACKAGE" | awk '{print $1}')" != "$(cat "$PLUGIN_DIR/$LAT_PACKAGE.md5" | awk '{print $1}')" ]; then
-      echo "2.51" >> /boot/1.log
       echo
       echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
       echo "--------------------------------CHECKSUM ERROR!---------------------------------"
@@ -82,7 +79,6 @@ echo "-------------Successfully downloaded lucky, please wait...!------------"
 fi
 }
 
-echo "0" >> /boot/1.log
 LAT_PACKAGE="unraid-lucky.txz"
 VER_P="v1.0"
 PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
