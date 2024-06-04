@@ -4,7 +4,6 @@
   <!ENTITY name      "lucky">
   <!ENTITY author    "stl88083365">
   <!ENTITY version   "2024.05.07">
-  <!ENTITY launch    "v1.0">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-&name;/releases/download">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/unraid-&name;/master/&name;.plg">
   <!ENTITY md5       "e5502322dde2bb6b91f48e68b9ae9f79">
@@ -12,7 +11,7 @@
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
 ]>
 
-<PLUGIN  name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0-beta31">
+<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.9.0-beta31">
 
 <CHANGES>
 
@@ -85,16 +84,17 @@ fi
 }
 
 LAT_PACKAGE="unraid-lucky.txz"
-PLUGIN_DIR="/boot/config/plugins/lucky/$launch"
-GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$launch"
-emhttp="/usr/local/emhttp/plugins/lucky"
+VER_P="v1.0"
+PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
+GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
+## emhttp="/usr/local/emhttp/plugins/lucky"
 
 if [ ! -d "$PLUGIN_DIR" ]; then
   mkdir -p "$PLUGIN_DIR"
 fi
 
 # Check for old packages
-rm -rf $(ls -d $PLUGIN_DIR/* | grep -v "$launch")
+rm -rf $(ls -d $PLUGIN_DIR/* | grep -v "$VER_P")
 
 # Check if lucky is allready downloaded and installed
 # check
