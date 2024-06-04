@@ -5,7 +5,7 @@
   <!ENTITY author    "stl88083365">
   <!ENTITY version   "2024.06.04">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-&name;/releases/download">
-  <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/unraid-&name;/master/&name;.plg">
+  <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/main/lucky.plg">
   <!ENTITY md5       "9b99a9d0e8e577fac1d02d741ec86709">
   <!ENTITY plugin    "/boot/config/plugins/&name;">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
@@ -114,6 +114,7 @@ else
     echo
 fi
 
+
 </INLINE>
 </FILE>
 
@@ -135,6 +136,7 @@ else
 fi
 rm -rf &plugin;
 rm -rf &emhttp;
+rm -rf /etc/lucky
 echo
 echo "----------------------------------------------------------------------------"
 echo "----------lucky uninstalled, please reboot your server!-------------"
