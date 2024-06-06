@@ -75,13 +75,7 @@ if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
       exit 1
     fi
 fi
-echo "-------------Check lucky Package...!------------"
-if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
-  echo
-  echo "-------------The lucky Package Not Download...!------------"
-  rm -rf $PLUGIN_DIR $emhttp
-  exit 1
-fi
+
 }
 
 LAT_PACKAGE="unraid-lucky.txz"
