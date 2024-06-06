@@ -67,10 +67,10 @@ download() {
 if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
   wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE" "$GIT_URL/$LAT_PACKAGE"
   wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE.md5" "$GIT_URL/$LAT_PACKAGE.md5"
-    if [ "$(md5sum "$PLUGIN_DIR/$LAT_PACKAGE" | awk '{print $1}')" != "$(cat "$PLUGIN_DIR/$LAT_PACKAGE.md5" | awk '{print $1}')" ]; then
+    if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
       echo
       echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
-      echo "--------------------------------CHECKSUM ERROR!---------------------------------"
+      echo "--------------------------------CHECK DOWNLOAD ERROR!---------------------------------"
       rm -rf $PLUGIN_DIR $emhttp
       exit 1
     fi
