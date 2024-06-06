@@ -90,7 +90,7 @@ if [ ! -d "$PLUGIN_DIR" ]; then
 fi
 
 # Check for old packages
-rm -rf $(ls -d $PLUGIN_DIR/* | grep -v "$VER_P")
+#rm -rf $(ls -d $PLUGIN_DIR/* | grep -v "$VER_P")
 
 # Check if lucky is allready downloaded and installed
 # check
