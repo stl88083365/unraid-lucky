@@ -5,7 +5,7 @@
   <!ENTITY author    "stl88083365">
   <!ENTITY version   "2024.06.06">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-lucky/releases/download">
-  <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/test/lucky.plg">
+  <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/main/lucky.plg">
   <!ENTITY md5       "2f822dd7e1c8df84f8c5d5d534f4299e">
   <!ENTITY plugin    "/boot/config/plugins/lucky">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/lucky">
