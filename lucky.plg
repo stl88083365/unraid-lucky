@@ -3,10 +3,10 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "lucky">
   <!ENTITY author    "stl88083365">
-  <!ENTITY version   "2024.06.04">
+  <!ENTITY version   "2024.06.06">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-lucky/releases/download">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/test/lucky.plg">
-  <!ENTITY md5       "9b99a9d0e8e577fac1d02d741ec86709">
+  <!ENTITY md5       "2f822dd7e1c8df84f8c5d5d534f4299e">
   <!ENTITY plugin    "/boot/config/plugins/lucky">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/lucky">
 ]>
@@ -56,9 +56,9 @@ fi
 
 chmod +x /etc/lucky/lucky
 
-(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/lucky/luckypid.sh") | crontab -
+#(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/lucky/luckypid.sh") | crontab -
 
-/etc/luckypid.sh
+#/etc/luckypid.sh
 
 }
 
@@ -80,7 +80,7 @@ fi
 }
 
 LAT_PACKAGE="unraid-lucky.txz"
-VER_P="v1.0"
+VER_P="v2.0"
 PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
 GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
 ## emhttp="/usr/local/emhttp/plugins/lucky"
