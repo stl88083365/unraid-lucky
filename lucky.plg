@@ -76,10 +76,7 @@ if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
     fi
 fi
 echo "-------------Check lucky Package...!------------"
-if [ -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
-  echo
-  echo "-------------Successfully downloaded lucky, please wait...!------------"
-else
+if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
   echo
   echo "-------------The lucky Package Not Download...!------------"
   rm -rf $PLUGIN_DIR $emhttp
