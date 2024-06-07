@@ -56,10 +56,6 @@ fi
 
 chmod +x /etc/lucky/lucky
 
-#(crontab -l 2>/dev/null; echo "*/1 * * * * /etc/lucky/luckypid.sh") | crontab -
-
-#/etc/luckypid.sh
-
 }
 
 download() {
@@ -82,7 +78,6 @@ LAT_PACKAGE="unraid-lucky.txz"
 VER_P="v2.0"
 PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
 GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
-## emhttp="/usr/local/emhttp/plugins/lucky"
 
 if [ ! -d "$PLUGIN_DIR" ]; then
   mkdir -p "$PLUGIN_DIR"
@@ -95,6 +90,7 @@ fi
 # check
 if [ ! -z "$(pidof lucky)" ]; then
     echo
+    kill "$(pidof lucky)"
     echo "------------------Installation of lucky successful---------------------"
     echo
 else
