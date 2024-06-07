@@ -81,8 +81,6 @@ GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
 if [ ! -d "$PLUGIN_DIR" ]; then
   mkdir -p "$PLUGIN_DIR"
 fi
-ls /boot/config/plugins/lucky/$VER_P
-# Check if lucky is allready downloaded and installed
 
 if [ ! -z "$(pidof lucky)" ]; then
     echo
