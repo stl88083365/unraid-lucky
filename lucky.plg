@@ -79,15 +79,11 @@ PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
 GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
 
 if [ ! -d "$PLUGIN_DIR" ]; then
-echo "111111111"
   mkdir -p "$PLUGIN_DIR"
 fi
-echo "$PLUGIN_DIR"
-# Check for old packages
-#rm -rf $(ls -d $PLUGIN_DIR/* | grep -v "$VER_P")
-
+ls /boot/config/plugins/lucky/$VER_P
 # Check if lucky is allready downloaded and installed
-# check
+
 if [ ! -z "$(pidof lucky)" ]; then
     echo
     kill "$(pidof lucky)"
