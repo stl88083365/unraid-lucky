@@ -84,7 +84,7 @@ fi
 
 if [ ! -z "$(pidof lucky)" ]; then
     echo
-    kill "$(pidof lucky)"
+   ## kill "$(pidof lucky)"
     echo "------------------Installation of lucky successful---------------------"
     echo
 else
