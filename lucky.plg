@@ -77,9 +77,8 @@ if [ ! -z "$(pidof lucky)" ]; then
 else
     echo
     echo "-------------------Downloading lucky, please wait...!-------------------"
-    download > /dev/null
     echo
-    echo "-------------------Installing lucky, please wait...!-------------------"
+    echo "-------------------Downloading And Installing lucky, please wait...!-------------------"
     install > /dev/null
     echo
     echo "------------------Installation of lucky successful---------------------"
