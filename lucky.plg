@@ -44,6 +44,8 @@ Default Password : 666
 <INLINE>
 
 install() {
+wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE" "$GIT_URL/$LAT_PACKAGE"
+wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE.md5" "$GIT_URL/$LAT_PACKAGE.md5"
 
 if [ ! -d /boot/config/lucky ]; then
     echo "Directory /boot/config/lucky does not exist, creating it now..."
@@ -55,21 +57,6 @@ fi
 /sbin/installpkg "$PLUGIN_DIR/$LAT_PACKAGE"
 
 chmod +x /etc/lucky/lucky
-
-}
-
-download() {
-mkdir -p $PLUGIN_DIR
-wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE" "$GIT_URL/$LAT_PACKAGE"
-wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE.md5" "$GIT_URL/$LAT_PACKAGE.md5"
-    if [ ! -f "/boot/config/plugins/lucky/$VER_P/$(LAT_PACKAGE)" ]; then
-      echo
-      echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
-      echo "--------------------------------CHECK DOWNLOAD ERROR!---------------------------------"
-      rm -rf $PLUGIN_DIR $emhttp
-      exit 1
-    fi
-fi
 
 }
 
