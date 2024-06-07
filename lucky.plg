@@ -47,6 +47,13 @@ install() {
 wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE" "$GIT_URL/$LAT_PACKAGE"
 wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE.md5" "$GIT_URL/$LAT_PACKAGE.md5"
 
+if [ ! -f "$PLUGIN_DIR/$LAT_PACKAGE" ]; then
+    echo "The lucky package did not finish downloading, please check and retry!..."
+    exit 1
+else
+    echo "The lucky package has been downloaded.."
+fi
+
 if [ ! -d /boot/config/lucky ]; then
     echo "Directory /boot/config/lucky does not exist, creating it now..."
     mkdir -p /boot/config/lucky
