@@ -82,7 +82,7 @@ if [ ! -d "$PLUGIN_DIR" ]; then
 echo "111111111"
   mkdir -p "$PLUGIN_DIR"
 fi
-
+echo "$PLUGIN_DIR"
 # Check for old packages
 #rm -rf $(ls -d $PLUGIN_DIR/* | grep -v "$VER_P")
 
