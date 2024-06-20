@@ -3,10 +3,10 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "lucky">
   <!ENTITY author    "stl88083365">
-  <!ENTITY version   "2024.06.06">
+  <!ENTITY version   "2024.06.20">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-lucky/releases/download">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/main/lucky.plg">
-  <!ENTITY md5       "2f822dd7e1c8df84f8c5d5d534f4299e">
+  <!ENTITY md5       "e491833946978bfdb9cabdbdf27fefe8">
   <!ENTITY plugin    "/boot/config/plugins/lucky">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/lucky">
 ]>
@@ -14,6 +14,8 @@
 <PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.9.0-beta31">
 
 <CHANGES>
+###2024.06.20
+- update lucky
 
 ###2024.06.04
 - Tested ...
