@@ -6,7 +6,7 @@
   <!ENTITY version   "2024.06.20">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-lucky/releases/download">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/main/lucky.plg">
-  <!ENTITY md5       "e491833946978bfdb9cabdbdf27fefe8">
+  <!ENTITY md5       "06d8080d582a92196c9060c1429f9270">
   <!ENTITY plugin    "/boot/config/plugins/lucky">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/lucky">
 ]>
