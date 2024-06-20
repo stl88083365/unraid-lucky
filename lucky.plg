@@ -70,7 +70,7 @@ chmod +x /etc/lucky/lucky
 }
 
 LAT_PACKAGE="unraid-lucky.txz"
-VER_P="v2.0"
+VER_P="v2.1"
 PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
 GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
 
