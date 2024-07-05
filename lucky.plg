@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "lucky">
   <!ENTITY author    "stl88083365">
-  <!ENTITY version   "2024.06.20">
+  <!ENTITY version   "2024.07.05">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-lucky/releases/download">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/main/lucky.plg">
   <!ENTITY md5       "06d8080d582a92196c9060c1429f9270">
@@ -14,6 +14,10 @@
 <PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.9.0-beta31">
 
 <CHANGES>
+###2024.07.05
+- Customizing the lucky version
+Download the specified version from the official website and extract the file to the /boot/config/lucky/ directory.
+
 ###2024.06.20
 - update lucky
 
@@ -64,6 +68,13 @@ else
 fi
 
 /sbin/installpkg "$PLUGIN_DIR/$LAT_PACKAGE"
+
+if [ ! -f /boot/config/lucky/lucky ]; then
+    echo "No custom lucky files..."
+else
+    cp -rf /boot/config/lucky/lucky /etc/lucky/lucky
+    echo "Copying a customized lucky file succeeds."
+fi
 
 chmod +x /etc/lucky/lucky
 
