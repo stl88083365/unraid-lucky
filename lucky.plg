@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "lucky">
   <!ENTITY author    "stl88083365">
-  <!ENTITY version   "2024.07.05">
+  <!ENTITY version   "2024.07.28">
   <!ENTITY gitURL    "https://github.com/&author;/unraid-lucky/releases/download">
   <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/main/lucky.plg">
   <!ENTITY md5       "06d8080d582a92196c9060c1429f9270">
@@ -14,6 +14,9 @@
 <PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.9.0-beta31">
 
 <CHANGES>
+###2024.07.05
+- Reboot to automatically run lucky
+
 ###2024.07.05
 - Customizing the lucky version
 Download the specified version from the official website and extract the file to the /boot/config/lucky/ directory.
@@ -78,10 +81,11 @@ fi
 
 chmod +x /etc/lucky/lucky
 
+
 }
 
 LAT_PACKAGE="unraid-lucky.txz"
-VER_P="v2.1"
+VER_P="v2.2"
 PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
 GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
 
@@ -103,6 +107,7 @@ else
     echo
     echo "------------------Installation of lucky successful---------------------"
     echo
+
 fi
 
 
