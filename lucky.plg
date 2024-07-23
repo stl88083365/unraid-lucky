@@ -80,7 +80,7 @@ else
 fi
 
 chmod +x /etc/lucky/lucky
-
+sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
 
 }
 
