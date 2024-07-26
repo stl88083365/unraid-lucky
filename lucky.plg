@@ -14,6 +14,9 @@
 <PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.9.0-beta31">
 
 <CHANGES>
+###2024.07.28
+- Added a custom suffix to temporarily save in cookies. 
+
 ###2024.07.05
 - Reboot to automatically run lucky
 
@@ -85,7 +88,7 @@ sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
 }
 
 LAT_PACKAGE="unraid-lucky.txz"
-VER_P="v2.2"
+VER_P="v2.3"
 PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
 GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
 
