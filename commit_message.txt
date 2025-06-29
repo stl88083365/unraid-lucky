@@ -1,0 +1,1 @@
+Fix: Correctly extract DL_URL in lucky.plg
