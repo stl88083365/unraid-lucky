@@ -100,7 +100,7 @@ install() {
     else
       echo "Error: Could not find any lucky package in releases or packages directory."
       exit 1
-    nfi
+    fi
   fi
 
   DOWNLOAD_PATH="$DOWNLOAD_DIR/$FINAL_DOWNLOAD_NAME"
