@@ -16,13 +16,12 @@ $PLUGIN_NAME: $PLUGIN_NAME Package contents:
 $PLUGIN_NAME:
 $PLUGIN_NAME: Source: https://github.com/gdy666/lucky
 $PLUGIN_NAME:
-$PLUGIN_NAME:
 $PLUGIN_NAME: Custom $PLUGIN_NAME package for Unraid by stl88083365
 $PLUGIN_NAME:
 EOF
 
-makepkg -l n -c n "$TMP_DIR/unraid-$PLUGIN_NAME.txz"
-md5sum "$TMP_DIR/unraid-$PLUGIN_NAME.txz" | awk '{print $1}' > "$TMP_DIR/unraid-$PLUGIN_NAME.txz.md5"
-cp "$TMP_DIR/unraid-$PLUGIN_NAME.txz" "." # Changed output directory to current
-cp "$TMP_DIR/unraid-$PLUGIN_NAME.txz.md5" "." # Changed output directory to current
+makepkg -l n -c n "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz"
+md5sum "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz" | awk '{print $1}' > "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz.md5"
+cp "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz" "." # Changed output directory to current
+cp "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz.md5" "." # Changed output directory to current
 rm -rf "$TMP_DIR"
