@@ -72,9 +72,10 @@ install() {
   LATEST_RELEASE_INFO=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest")
   if echo "$LATEST_RELEASE_INFO" | grep -q "tag_name"; then
     LATEST_RELEASE_TAG=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"tag_name": "\K[^"]+' | head -n 1)
+    RELEASE_DATE_VERSION=$(echo "$LATEST_RELEASE_TAG" | cut -d'-' -f1)
     # Construct the expected asset name and URL based on the tag (date)
     if [ -n "$LATEST_RELEASE_TAG" ]; then
-      LATEST_RELEASE_ASSET_NAME="unraid-lucky-${LATEST_RELEASE_TAG}.txz"
+      LATEST_RELEASE_ASSET_NAME="unraid-lucky-${RELEASE_DATE_VERSION}.txz"
       LATEST_RELEASE_ASSET_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$LATEST_RELEASE_TAG/$LATEST_RELEASE_ASSET_NAME"
 
       # Verify if the asset actually exists by checking the HTTP header
