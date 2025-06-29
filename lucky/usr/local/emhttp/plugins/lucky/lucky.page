@@ -316,8 +316,8 @@ function changeApply() {
 
 <tr><td><strong><?tr("lucky process guard:");?></strong></td>
 <td><select id='pluginCronFrequency' class='pluginCron'>
-	<option value='disabled' <?= ($current_cron_frequency == 'disabled') ? 'selected' : '' ?>><?tr("No");?></option>
-	<option value='Custom' <?= ($current_cron_frequency == 'Custom') ? 'selected' : '' ?>><?tr("Yes");?></option>
+	<option value='disabled' <?= ($lucky_running == 0) ? 'selected' : '' ?>><?tr("No");?></option>
+	<option value='Custom' <?= ($lucky_running == 1) ? 'selected' : '' ?>><?tr("Yes");?></option>
 </select></td></tr>
 </tr></table>
 </div>

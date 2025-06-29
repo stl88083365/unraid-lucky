@@ -57,7 +57,7 @@ Default Password : 666
 
 download() {
 #Download lucky Package
-if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}" "${DL_URL}/${LAT_PACKAGE}" ; then
+if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}" "${DL_URL}" ; then
 # MD5 check might need adjustment if releases don't provide .md5 files
 # wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
 # if [ "$(md5sum &packages;/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
@@ -78,22 +78,30 @@ fi
 }
 
 get_version() {
-# Fetch latest release tag
-LATEST_RELEASE_TAG=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest" | grep -oP '"tag_name": "\K[^"]+' | head -n 1)
-if [ -z "$LATEST_RELEASE_TAG" ]; then
-  # Fallback to packages directory if no release found
-  LAT_PACKAGE=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/packages" | grep -oP '"name": "\Klucky_.*\.txz(?=")' | sort -V | tail -n 1)
+# Fetch latest release info
+LATEST_RELEASE_INFO=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
+DL_URL=""
+LAT_PACKAGE=""
+
+# Try to find .txz asset in releases
+if [ -n "$LATEST_RELEASE_INFO" ]; then
+  # Extract browser_download_url for .txz asset
+  DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"browser_download_url": "\K[^"]+\.txz(?=")' | head -n 1)
+  if [ -n "$DL_URL" ]; then
+    # Extract filename from the URL
+    LAT_PACKAGE=$(basename "$DL_URL")
+  fi
+fi
+
+if [ -z "$DL_URL" ]; then
+  # Fallback to packages directory if no release asset found
+  LAT_PACKAGE=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/packages" | grep -oP '"name": "\Kunraid-lucky-.*\.txz(?=")' | sort -V | tail -n 1)
   if [ -z "$LAT_PACKAGE" ]; then
     echo "Error: Could not find any lucky package in releases or packages directory."
     rm -rf &plugin; &emhttp;
     exit 1
   fi
-  DL_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/raw/main/packages"
-else
-  # Extract date from tag for asset name
-  RELEASE_DATE_VERSION=$(echo "$LATEST_RELEASE_TAG" | cut -d'-' -f1)
-  LAT_PACKAGE="unraid-lucky-${RELEASE_DATE_VERSION}.txz"
-  DL_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${LATEST_RELEASE_TAG}"
+  DL_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/raw/main/packages/${LAT_PACKAGE}" # Construct full URL for fallback
 fi
 
 if [ -z "$LAT_PACKAGE" ]; then
