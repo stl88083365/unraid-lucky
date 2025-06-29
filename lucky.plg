@@ -123,12 +123,12 @@ install() {
   fi
 
   echo "Extracting lucky package from $DOWNLOAD_PATH to /boot/config/lucky/..."
-  tar -xzf "$DOWNLOAD_PATH" -C /boot/config/lucky/ --strip-components=1 # --strip-components=1 to remove the top-level directory if present in tarball
+  tar -xzf "$DOWNLOAD_PATH" -C /boot/config/lucky/
 
-  if [ ! -f /boot/config/lucky/lucky ]; then
+  if [ ! -f /boot/config/lucky/etc/lucky/lucky ]; then
       echo "No custom lucky files found after extraction. Please check the package content."
   else
-      cp -rf /boot/config/lucky/lucky /etc/lucky/lucky
+      cp -rf /boot/config/lucky/etc/lucky/lucky /etc/lucky/lucky
       echo "Copying a customized lucky file succeeds."
   fi
 
