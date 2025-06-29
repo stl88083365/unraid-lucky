@@ -1,0 +1,449 @@
+Menu="Utilities"
+Icon="lucky.png"
+Title="lucky"
+---
+
+<?
+$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$lucky_port = "16601";
+$lucky_running = shell_exec("pidof lucky | wc -w");
+$lucky_version = shell_exec("cat /usr/local/emhttp/plugins/lucky/VERSION | tr '\n' ' '");
+
+// 读取保存的后缀
+$suffix_file = "/boot/config/lucky/suffix.cfg";
+$saved_suffix = "";
+if (file_exists($suffix_file)) {
+    $saved_suffix = trim(file_get_contents($suffix_file));
+} else {
+    // 确保目录存在
+    $suffix_dir = "/boot/config/lucky";
+    if (!is_dir($suffix_dir)) {
+        mkdir($suffix_dir, 0755, true);
+    }
+}
+
+// 添加调试信息
+error_log("Suffix file path: " . $suffix_file);
+error_log("Saved suffix: " . $saved_suffix);
+
+function tr($string,$ret=false,$options=-1) {
+	if ( function_exists("_") )
+		$string =  _($string,$options);
+	if ( $ret )
+		return $string;
+	else
+		echo $string;
+}
+if ( ! function_exists("my_lang") ) {
+	function my_lang($string,$flag="") {
+		return $string;
+	}
+}
+
+$languageMessage = is_file("$docroot/plugins/dynamix/include/Translations.php") ? "<br>".tr("(Selecting Yes also updates languages)",true) : "";
+
+require_once("/usr/local/emhttp/plugins/dynamix.plugin.manager/include/PluginHelpers.php");
+
+$plugin = "lucky";
+
+$unRaidVersion = parse_ini_file("/etc/unraid-version");
+$backTopTopIncluded = (version_compare($unRaidVersion['version'],"6.4.0-rc9f","<=")) ? "false" : "true";
+
+# get the settings already selected
+
+$updateSettings = json_decode(@file_get_contents("/boot/config/plugins/$plugin/AutoRunSettings.json"),true);
+if ( ! $updateSettings ) {
+	$updateSettings['pluginCronFrequency'] = "Daily";
+}
+
+$updateSettings['pluginCronFrequency'] = ! ($updateSettings['pluginCronFrequency'] ?? false) ? "Daily" : "";
+
+$pluginCronScript = "";
+if ( is_array($updateSettings['cron'] ?? null) ) {
+	$cronSettings = array_keys($updateSettings['cron']);
+	foreach ($cronSettings as $setting) {
+		$pluginCronScript .= "$('#$setting').val('".$updateSettings['cron'][$setting]."');";
+	}
+}
+
+?>
+<link type="text/css" rel="stylesheet" href="<?=autov("/plugins/lucky/styles/switchbutton.css")?>">
+<style>
+<?if ($backTopTopIncluded == "false"):?>
+.back-to-top {
+	background: none;
+	margin: 0;
+	position: fixed;
+	bottom: 50px;
+	right: 0;
+	width: 70px;
+	height: 70px;
+	z-index: 100;
+	display: none;
+	text-decoration: none;
+	color: #ffffff;
+}
+<?endif;?>
+.unRaidAutoButton {
+	left: 11px;
+}
+
+/* 新增美化样式 */
+select, input[type="text"] {
+	padding: 5px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+input[type="button"] {
+	padding: 5px 15px;
+	margin: 0 5px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+input[type="button"]:not(:disabled) {
+	background: linear-gradient(to bottom, #f8f8f8, #e8e8e8);
+	border: 1px solid #ddd;
+}
+
+input[type="button"]:hover:not(:disabled) {
+	background: linear-gradient(to bottom, #e8e8e8, #f8f8f8);
+}
+
+input[type="button"]:disabled {
+	background: #f5f5f5;
+	border: 1px solid #ddd;
+	cursor: not-allowed;
+}
+
+table {
+	margin: 10px 0;
+}
+
+td {
+	padding: 5px;
+}
+
+#output a {
+	text-decoration: none;
+	padding: 5px 10px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+}
+
+#output a:hover {
+	background-color: rgba(0,0,0,0.05);
+}
+
+/* 添加新的样式 */
+.cron-custom-section {
+    display: none;  /* 默认隐藏 */
+}
+
+/* 添加按钮样式 */
+.button-container {
+    text-align: center;
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.custom-button {
+    padding: 8px 20px;
+    margin: 0 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    border: 1px solid #ddd;
+    min-width: 100px;
+    transition: all 0.2s ease;
+}
+
+.apply-button {
+    background: linear-gradient(to bottom, #4CAF50, #45a049);
+    color: white;
+    border-color: #4CAF50;
+}
+
+.apply-button:hover:not(:disabled) {
+    background: linear-gradient(to bottom, #45a049, #4CAF50);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.apply-button:disabled {
+    background: #cccccc;
+    border-color: #bbbbbb;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.done-button {
+    background: linear-gradient(to bottom, #f8f8f8, #e8e8e8);
+    color: #333;
+}
+
+.done-button:hover {
+    background: linear-gradient(to bottom, #e8e8e8, #f8f8f8);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+
+<?if ($backTopTopIncluded == "false"):?>
+jQuery(document).ready(function() {
+	var offset = 250;
+	var duration = 500;
+	jQuery(window).scroll(function() {
+		if (jQuery(this).scrollTop() > offset) {
+			jQuery('.back-to-top').fadeIn(duration);
+		} else {
+			jQuery('.back-to-top').fadeOut(duration);
+		}
+	});
+	
+	jQuery('.back-to-top').click(function(event) {
+		event.preventDefault();
+		jQuery('html, body').animate({scrollTop: 0}, duration);
+		return false;
+	})
+});
+<?endif;?>
+
+var caURL = "/plugins/<?=$plugin?>/scripts/exec.php";
+
+$(function() {
+	$(".pluginCron").change(function() {
+		validateCron("plugin");
+		changeApply();
+	});
+	
+	changeGlobal();
+	$("#pluginCronFrequency").val('<?=$updateSettings['pluginCronFrequency']?>');
+	<?=$pluginCronScript?>
+	validateCron("plugin");
+});
+
+function validateCron(pagetype) {
+	var baseID = "#"+pagetype;
+	var frequency = $(baseID+"CronFrequency").val();
+	switch ( frequency ) {
+		case "disabled":
+			$(baseID+"CronCustom").prop("disabled",true);
+            stopProgram();
+			break;
+		case "Custom":
+			$(baseID+"CronCustom").prop("disabled",false);
+			break;
+	}
+}
+
+function stopProgram() {
+    $.post(caURL, {action: 'stopProgram'}, function(data) {
+        if (data) {
+            console.log("Program stopped:", data);
+            $("#testing").html(data);
+        }
+    });
+}
+
+function myAlert(description,textdescription,textimage,imagesize, outsideClick, showCancel, showConfirm, alertType) {
+	if ( !outsideClick ) outsideClick = false;
+	if ( !showCancel )   showCancel = false;
+	if ( !showConfirm )  showConfirm = false;
+	if ( imagesize == "" ) { imagesize = "80x80"; }
+	swal({
+		title: description,
+		text: textdescription,
+		imageUrl: textimage,
+		imageSize: imagesize,
+		allowOutsideClick: outsideClick,
+		showConfirmButton: showConfirm,
+		showCancelButton: showCancel,
+		type: alertType,
+		html: true
+	});
+}
+
+function apply() {
+	var myvalue = new Array();
+	$('.unRaidAutoButton').each(function () {
+		var plugin = $(this).data("plugin");
+		var pluginSetting = new Array(plugin);
+		myvalue.push(pluginSetting);
+	});
+	var pluginCron = getCronSettings("plugin");
+	$.post(caURL,{action:'autoUpdatePlugins',pluginList:myvalue,pluginCron:pluginCron},function(data) {
+		if (data) {
+			$("#testing").html(data);
+		}
+	});
+	$(".applyButton").prop("disabled",true);
+}
+
+function getCronSettings(pagetype) {
+	var cronSettings = new Array();
+	$("."+pagetype+"Cron").each(function() {
+		var settingID = $(this).attr("id");
+		var settingVal = $(this).val();
+		var settings = new Array(settingID,settingVal);
+		cronSettings.push(settings);
+	});
+	return cronSettings;
+}
+
+function changeGlobal() {
+	var selectedValue = $('#allPlugins').val();
+	
+	if (selectedValue == "no" ) {
+		$("#pluginList").show();
+	} else {
+		$("#pluginList").hide();
+	}
+	changeApply();
+}
+
+function changeApply() {
+	$(".applyButton").prop("disabled",false);
+}
+</script>
+<FORM method="get" id="myForm">
+
+> <center><a href="https://github.com/stl88083365/unraid-lucky" target="_blank"><?tr("My github");?></a></center>
+> <br>
+
+<div>
+<div style='width:45%;float:left;'>
+<table>
+
+<tr><td><strong><?tr("lucky process guard:");?></strong></td>
+<td><select id='pluginCronFrequency' class='pluginCron' value='Custom'>
+	<option value='disabled'><?tr("No");?></option>
+	<option value='Custom'><?tr("Yes");?></option>
+</select></td></tr>
+</tr></table>
+</div>
+<div style='width:45%;float:right;' class="cron-custom-section">
+<table>
+<tr><td><strong><?tr("Custom (cron expression):");?></strong></td>
+<td><input type='text' id='pluginCronCustom' class='pluginCron' style="width: 80px;" value="*/1 * * * *"></td></tr>
+</table>
+</div></div>
+</center>
+
+<div class="button-container">
+    <input type='button' 
+           value='<?tr("Apply");?>' 
+           class='custom-button apply-button applyButton' 
+           disabled 
+           onclick='apply();'>
+    <input type='button' 
+           value='<?tr("Done");?>' 
+           class='custom-button done-button' 
+           onclick="done();">
+</div>
+
+<center>
+
+<?php
+$owner = 'gdy666';
+$repo = 'lucky';
+$url = "https://api.github.com/repos/$owner/$repo/releases/latest";
+
+$context = stream_context_create([
+    'http' => [
+        'method' => 'GET',
+        'header' => "User-Agent: PHP-Script\n" 
+    ]
+]);
+
+$response = file_get_contents($url, false, $context);
+
+if ($response === false) {
+    echo "Unable to retrieve data from GitHub.";
+} else {
+    $latestRelease = json_decode($response, true);
+
+    if (isset($latestRelease['message'])) {
+        echo "GitHub API error: " . $latestRelease['message'];
+    } else {
+		echo "Latest release version: <span style='color: red;'>(" . htmlspecialchars($latestRelease['tag_name']) . ")</span>\n";
+    }
+}
+?>
+
+</center>
+
+<center>
+<script type="text/javascript">
+    // 保存用户输入到配置文件
+    function saveSuffix() {
+        var userSuffix = document.getElementById('suffixInput').value;
+        console.log('Saving suffix:', userSuffix); // 调试信息
+        
+        $.post(caURL, {
+            action: 'saveSuffix',
+            suffix: userSuffix
+        }, function(response) {
+            console.log('Save response:', response); // 调试信息
+            try {
+                var result = JSON.parse(response);
+                if (result.success) {
+                    updateLink();
+                } else {
+                    console.error('Failed to save suffix:', result.error);
+                }
+            } catch (e) {
+                console.error('Error parsing response:', e);
+            }
+        }).fail(function(xhr, status, error) {
+            console.error('AJAX error:', status, error);
+        });
+    }
+
+    // 获取用户输入并更新链接
+    function updateLink() {
+        var port = <?=$lucky_port;?>;
+        var url = 'http://' + document.location.hostname + ':' + port + '/';    
+        var isRunning = <?=$lucky_running;?> === 1;
+        var version = '<?=$lucky_version;?>';
+        var userSuffix = document.getElementById('suffixInput').value;
+
+        var displayText = '';
+        var linkUrl = url;
+
+        if (userSuffix) {
+            linkUrl += userSuffix;
+        }
+
+        if (isRunning) {
+            displayText = "<a style='color:green;' target='_blank' href='" + linkUrl + "' title='Lucky Web'><b>Open Web UI ( v" + version + " )</b></a>";
+        } else {
+            displayText = "<b><font style='color:orange;'>lucky v" + version + "</font></b>";
+        }
+
+        document.getElementById('output').innerHTML = displayText;
+    }
+
+    // 初始化页面内容
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Initial saved suffix:', '<?=$saved_suffix?>'); // 调试信息
+        document.getElementById('suffixInput').value = '<?=$saved_suffix?>';
+        document.getElementById('suffixInput').addEventListener('input', saveSuffix);
+        updateLink();
+    });
+</script>
+
+<!-- 显示更新后的内容 -->
+<div id="output"></div>
+
+<!-- 用户输入框 -->
+<p style="text-align:center;">
+    Customized Suffixes : 
+    <input type="text" id="suffixInput" style="width: 80px;"/>
+</p>
+</center>
+
+<center><a href="http://github.com/stl88083365/unriad-lucky" target="_blank"><?tr("My GitHub");?></a></center>
+<span id='testing'></span>
+</FORM>

@@ -1,0 +1,28 @@
+#!/bin/bash
+# read our configuration
+# shellcheck disable=SC1091
+source /boot/config/plugins/lucky/lucky.cfg
+
+# shellcheck disable=SC2034
+vars="/boot/config/plugins/lucky/lucky.env"
+# shellcheck disable=SC2034
+prog="/usr/local/emhttp/plugins/lucky/lucky"
+
+# stop it if it's running
+killall lucky > /dev/null 2>&1
+
+# 检查并创建目标目录
+if [ ! -d "/etc/lucky" ]; then
+  mkdir -p /etc/lucky
+fi
+
+# 检查源文件是否存在
+if [ -f "/boot/config/lucky/lucky" ]; then
+  # 复制文件到目标目录
+  cp -f /boot/config/lucky/lucky /etc/lucky/
+  # 确保文件有执行权限
+  chmod +x /etc/lucky/lucky
+fi
+
+# run the app
+/etc/lucky/lucky -c /boot/config/lucky/lucky.conf >/dev/null 2>&1 &

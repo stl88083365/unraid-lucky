@@ -1,0 +1,34 @@
+#!/bin/sh
+
+prog="lucky"
+running=$(pidof $prog | wc -w)
+
+# no-op if already running
+if [ "$running" -ge 1 ]; then
+TIMER=0
+# shellcheck disable=SC2091
+while $(killall $prog 2>/dev/null); do
+	sleep 1
+	TIMER=$((TIMER+1))
+	if [ $TIMER -ge 30 ]; then
+		killall -9 $prog
+		sleep 1
+		break
+	fi
+done
+fi
+
+TASK_KEYWORD="luckypid.sh"
+
+delete_cron_job() {
+    crontab -l > current_cron
+    grep -v "$TASK_KEYWORD" current_cron > modified_cron
+    crontab modified_cron
+    rm current_cron modified_cron
+}
+
+delete_cron_job
+
+while crontab -l | grep -q "$TASK_KEYWORD"; do
+  delete_cron_job
+done

@@ -1,0 +1,5 @@
+#!/bin/bash
+source /boot/config/plugins/lucky/lucky.cfg
+if [ "$SERVICE" == "enable" ]; then
+	/usr/local/emhttp/plugins/lucky/scripts/start
+fi
