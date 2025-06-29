@@ -1,17 +1,18 @@
 <?xml version='1.0' standalone='yes'?>
 
 <!DOCTYPE PLUGIN [
-  <!ENTITY name      "lucky">
-  <!ENTITY author    "stl88083365">
-  <!ENTITY version   "2025.07.29">
-  <!ENTITY gitURL    "https://github.com/&author;/unraid-lucky/releases/download">
-  <!ENTITY pluginURL "https://raw.githubusercontent.com/stl88083365/unraid-lucky/main/lucky.plg">
-  <!ENTITY md5       "06d8080d582a92196c9060c1429f9270">
-  <!ENTITY plugin    "/boot/config/plugins/lucky">
-  <!ENTITY emhttp    "/usr/local/emhttp/plugins/lucky">
+<!ENTITY name "lucky">
+<!ENTITY author "stl88083365">
+<!ENTITY version "2025.07.29">
+<!ENTITY launch "Settings/lucky">
+<!ENTITY gitURL "https://github.com/&author;/unraid-&name;/raw/main">
+<!ENTITY pluginURL "&gitURL;/&name;.plg">
+<!ENTITY md5 "06d8080d582a92196c9060c1429f9270">
+<!ENTITY plugin "/boot/config/plugins/&name;">
+<!ENTITY emhttp "/usr/local/emhttp/plugins/&name;">
+<!ENTITY packages "/boot/config/plugins/&name;/packages">
 ]>
-
-<PLUGIN  name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.9.0-beta31">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0-beta31">
 
 <CHANGES>
 ###2024.07.28
@@ -55,103 +56,172 @@ Default Password : 666
 <FILE Run="/bin/bash">
 <INLINE>
 
-install() {
-  REPO_OWNER="stl88083365"
-  REPO_NAME="unraid-lucky"
-  DOWNLOAD_DIR="/boot/config/plugins/lucky/download"
-
-  mkdir -p "$DOWNLOAD_DIR"
-
-  echo "Checking for latest lucky package..."
-
-  FINAL_DOWNLOAD_URL=""
-  FINAL_DOWNLOAD_NAME=""
-
-  # Try to get latest release info
-  LATEST_RELEASE_TAG=""
-  LATEST_RELEASE_INFO=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest")
-  if echo "$LATEST_RELEASE_INFO" | grep -q "tag_name"; then
-    LATEST_RELEASE_TAG=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"tag_name": "\K[^"]+' | head -n 1)
-    RELEASE_DATE_VERSION=$(echo "$LATEST_RELEASE_TAG" | cut -d'-' -f1)
-    # Construct the expected asset name and URL based on the tag (date)
-    if [ -n "$LATEST_RELEASE_TAG" ]; then
-      LATEST_RELEASE_ASSET_NAME="unraid-lucky-${RELEASE_DATE_VERSION}.txz"
-      LATEST_RELEASE_ASSET_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$LATEST_RELEASE_TAG/$LATEST_RELEASE_ASSET_NAME"
-
-      # Verify if the asset actually exists by checking the HTTP header
-      if curl -s --head --fail "$LATEST_RELEASE_ASSET_URL" > /dev/null; then
-        echo "Latest version found in releases: $LATEST_RELEASE_TAG"
-        FINAL_DOWNLOAD_URL="$LATEST_RELEASE_ASSET_URL"
-        FINAL_DOWNLOAD_NAME="$LATEST_RELEASE_ASSET_NAME"
-      else
-        echo "Release asset $LATEST_RELEASE_ASSET_NAME not found for tag $LATEST_RELEASE_TAG. Falling back to packages directory."
-      fi
-    fi
-  fi
-
-  # If no release asset found, check packages directory
-  if [ -z "$FINAL_DOWNLOAD_URL" ]; then
-    echo "Checking packages directory for latest lucky package..."
-    LATEST_PACKAGE_NAME=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/packages" | grep -oP '"name": "\Klucky_.*\.tar\.gz(?=")' | sort -V | tail -n 1)
-    if [ -n "$LATEST_PACKAGE_NAME" ]; then
-      echo "Latest version found in packages directory: $LATEST_PACKAGE_NAME"
-      FINAL_DOWNLOAD_URL="https://github.com/$REPO_OWNER/$REPO_NAME/raw/main/packages/$LATEST_PACKAGE_NAME"
-      FINAL_DOWNLOAD_NAME="$LATEST_PACKAGE_NAME"
-    else
-      echo "Error: Could not find any lucky package in releases or packages directory."
-      exit 1
-    fi
-  fi
-
-  DOWNLOAD_PATH="$DOWNLOAD_DIR/$FINAL_DOWNLOAD_NAME"
-
-  echo "Downloading $FINAL_DOWNLOAD_NAME from $FINAL_DOWNLOAD_URL..."
-  wget -q -nc --show-progress --progress=bar:force:noscroll -O "$DOWNLOAD_PATH" "$FINAL_DOWNLOAD_URL"
-
-  if [ ! -f "$DOWNLOAD_PATH" ]; then
-      echo "The lucky package did not finish downloading, please check and retry!... ($DOWNLOAD_PATH)"
-      exit 1
-  else
-      echo "The lucky package has been downloaded to $DOWNLOAD_PATH."
-  fi
-
-  if [ ! -d /boot/config/lucky ]; then
-      echo "Directory /boot/config/lucky does not exist, creating it now..."
-      mkdir -p /boot/config/lucky
-  else
-      echo "Directory /boot/config/lucky already exists."
-  fi
-
-  echo "Extracting lucky package from $DOWNLOAD_PATH to /boot/config/lucky/..."
-  tar -xzf "$DOWNLOAD_PATH" -C /boot/config/lucky/
-
-  if [ ! -f /boot/config/lucky/etc/lucky/lucky ]; then
-      echo "No custom lucky files found after extraction. Please check the package content."
-  else
-      cp -rf /boot/config/lucky/etc/lucky/lucky /etc/lucky/lucky
-      echo "Copying a customized lucky file succeeds."
-  fi
-
-  chmod +x /etc/lucky/lucky
-  sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
-
+download() {
+#Download lucky Package
+if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}" "${DL_URL}/${LAT_PACKAGE}" ; then
+# MD5 check might need adjustment if releases don't provide .md5 files
+# wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
+# if [ "$(md5sum &packages;/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
+# echo
+# echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
+# echo "--------------------------------CHECKSUM ERROR!---------------------------------"
+# rm -rf &plugin; &emhttp;
+# exit 1
+# fi
+echo
+echo "----Successfully downloaded lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3), please wait!----"
+else
+echo
+echo "--------------Can't download lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)-----------------"
+rm -rf &plugin; &emhttp;
+exit 1
+fi
 }
 
-if [ ! -z "$(pidof lucky)" ]; then
-    echo
-   ## kill "$(pidof lucky)"
-    echo "------------------Installation of lucky successful---------------------"
-    echo
+get_version() {
+# Fetch latest release tag
+LATEST_RELEASE_TAG=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest" | grep -oP '"tag_name": "\K[^"]+' | head -n 1)
+if [ -z "$LATEST_RELEASE_TAG" ]; then
+  # Fallback to packages directory if no release found
+  LAT_PACKAGE=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/packages" | grep -oP '"name": "\Klucky_.*\.txz(?=")' | sort -V | tail -n 1)
+  if [ -z "$LAT_PACKAGE" ]; then
+    echo "Error: Could not find any lucky package in releases or packages directory."
+    rm -rf &plugin; &emhttp;
+    exit 1
+  fi
+  DL_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/raw/main/packages"
 else
-    echo
-    echo "-------------------Downloading lucky, please wait...!-------------------"
-    echo
-    echo "-------------------Downloading And Installing lucky, please wait...!-------------------"
-    install > /dev/null
-    echo
-    echo "------------------Installation of lucky successful---------------------"
-    echo
+  # Extract date from tag for asset name
+  RELEASE_DATE_VERSION=$(echo "$LATEST_RELEASE_TAG" | cut -d'-' -f1)
+  LAT_PACKAGE="unraid-lucky-${RELEASE_DATE_VERSION}.txz"
+  DL_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/download/${LATEST_RELEASE_TAG}"
+fi
 
+if [ -z "$LAT_PACKAGE" ]; then
+  if [ -z "$CUR_V" ]; then
+    echo
+    echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
+    echo "---Can't get latest lucky version and found no installed local lucky---"
+    rm -rf &plugin; &emhttp;
+    exit 1
+  else
+    LAT_PACKAGE=${CUR_V}
+  fi
+fi
+}
+
+#Check if package is already downloaded
+check() {
+if ! ls -1 &packages;/ | grep -q "${PACKAGE}" ; then
+get_version
+echo
+echo "+=============================================================================="
+echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
+echo "|"
+echo "| Don't close this window with the red 'X' in the top right corner until the 'DONE' button is displayed!"
+echo "|"
+echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
+echo "+=============================================================================="
+echo
+echo "-----------------Downloading lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)------------------"
+echo "----------This could take some time, please don't close this window!------------"
+download
+else
+LAT_PACKAGE=$CUR_V
+echo
+echo "--------------------lucky v$(echo $LAT_PACKAGE | cut -d '-' -f3) found locally---------------------"
+fi
+}
+
+#Install package
+install_package() { # Renamed to avoid conflict with main install() function
+/sbin/installpkg "&packages;/${LAT_PACKAGE}"
+# Assuming lucky binary is extracted to /etc/lucky/lucky
+if [ ! -f /etc/lucky/lucky ]; then
+  echo "Error: lucky binary not found after installation. Please check package content."
+  exit 1
+fi
+chmod +x /etc/lucky/lucky
+sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
+}
+
+activate() {
+# Placeholder for any activation logic specific to lucky
+# For example, starting the lucky service
+echo "Activating lucky..."
+}
+
+#Set variables
+REPO_OWNER="stl88083365"
+REPO_NAME="unraid-lucky"
+PACKAGE="unraid-lucky" # Base name for the package
+# DL_URL will be set in get_version based on release or packages
+
+if [ ! -d "&packages;" ]; then
+mkdir -p "&packages;"
+CUR_V=""
+else
+CUR_V="$(ls -p &packages; 2>/dev/null | grep -E -v '\.md5
+
+
+</INLINE>
+</FILE>
+
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+
+echo "---------------------------------------"
+echo "------Uninstalling lucky-------"
+echo "---------------------------------------"
+# Remove plugin related files
+PID=$(pidof lucky)
+if [ ! -z "$PID" ]; then
+    echo "Lucky process is running. Stopping it..."
+    kill $PID
+    wait $PID 2>/dev/null
+    echo "Lucky process has been stopped."
+else
+    echo "Lucky process is not running."
+fi
+rm -rf &plugin;
+rm -rf &emhttp;
+rm -rf /etc/lucky
+echo
+echo "----------------------------------------------------------------------------"
+echo "----------lucky uninstalled, please reboot your server!-------------"
+echo "----------------------------------------------------------------------------"
+echo
+
+</INLINE>
+</FILE>
+</PLUGIN>
+ | sort -V | tail -1)"
+fi
+
+#Create settings file if not found
+if [ ! -f "&plugin;/settings.cfg" ]; then
+echo 'first_installation=true
+driver_version=latest
+disable_xconfig=false
+update_check=true' > "&plugin;/settings.cfg"
+fi
+
+#Add update check entry if not exists
+if [ ! "$(grep -q "update_check=" &plugin;/settings.cfg)" ]; then
+echo "update_check=true" >> &plugin;/settings.cfg
+fi
+
+#Check if lucky Package is already downloaded
+check
+
+#Install lucky Package
+if [ ! -f /etc/lucky/lucky ]; then # Check if lucky is already installed
+echo
+echo "-----------------Installing lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)-------------------"
+install_package > /dev/null
+activate
+else
+activate
 fi
 
 
