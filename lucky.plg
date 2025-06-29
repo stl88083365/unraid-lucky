@@ -1,5 +1,4 @@
 <?xml version='1.0' standalone='yes'?>
-
 <!DOCTYPE PLUGIN [
 <!ENTITY name "lucky">
 <!ENTITY author "stl88083365">
@@ -39,7 +38,7 @@ Download the specified version from the official website and extract the file to
 **lucky**
 
 For further information go to the source Github repository: https://github.com/stl88083365/unraid-lucky .  
-  
+
 Lucky is highly customizable and supports the running of various custom scripts.
 However, once the account password and backend entrance are leaked, it may bring unforeseen consequences.
 Therefore, it is very important to set up a secure portal.
@@ -161,41 +160,7 @@ if [ ! -d "&packages;" ]; then
 mkdir -p "&packages;"
 CUR_V=""
 else
-CUR_V="$(ls -p &packages; 2>/dev/null | grep -E -v '\.md5
-
-
-</INLINE>
-</FILE>
-
-<FILE Run="/bin/bash" Method="remove">
-<INLINE>
-
-echo "---------------------------------------"
-echo "------Uninstalling lucky-------"
-echo "---------------------------------------"
-# Remove plugin related files
-PID=$(pidof lucky)
-if [ ! -z "$PID" ]; then
-    echo "Lucky process is running. Stopping it..."
-    kill $PID
-    wait $PID 2>/dev/null
-    echo "Lucky process has been stopped."
-else
-    echo "Lucky process is not running."
-fi
-rm -rf &plugin;
-rm -rf &emhttp;
-rm -rf /etc/lucky
-echo
-echo "----------------------------------------------------------------------------"
-echo "----------lucky uninstalled, please reboot your server!-------------"
-echo "----------------------------------------------------------------------------"
-echo
-
-</INLINE>
-</FILE>
-</PLUGIN>
- | sort -V | tail -1)"
+CUR_V="$(ls -p &packages; 2>/dev/null | grep -E -v '\.md5$' | sort -V | tail -1)"
 fi
 
 #Create settings file if not found
@@ -207,8 +172,8 @@ update_check=true' > "&plugin;/settings.cfg"
 fi
 
 #Add update check entry if not exists
-if [ ! "$(grep -q "update_check=" &plugin;/settings.cfg)" ]; then
-echo "update_check=true" >> &plugin;/settings.cfg
+if ! grep -q "update_check=" "&plugin;/settings.cfg"; then
+echo "update_check=true" >> "&plugin;/settings.cfg"
 fi
 
 #Check if lucky Package is already downloaded
@@ -223,7 +188,6 @@ activate
 else
 activate
 fi
-
 
 </INLINE>
 </FILE>
