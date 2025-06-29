@@ -3,7 +3,7 @@
 PLUGIN_NAME="lucky"
 BASE_DIR="./lucky" # Changed to relative path
 TMP_DIR="/tmp/${PLUGIN_NAME}_${RANDOM}"
-VERSION="$(date +'%Y.%m.%d-%H%M%S')"
+VERSION="$(date +'%Y.%m.%d')"
 
 mkdir -p "$TMP_DIR/$VERSION"
 cd "$TMP_DIR/$VERSION" || exit 1
