@@ -28,6 +28,9 @@ jobs:
           chmod +x makelucky.sh
           ./makelucky.sh
 
+      - name: Debug github.sha_short
+        run: echo "github.sha_short: ${{ github.sha_short }}"
+
       - name: List generated files
         run: ls -l dist/
 
