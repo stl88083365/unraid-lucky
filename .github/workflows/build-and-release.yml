@@ -17,13 +17,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      
-
-      - name: Make Lucky Package
-        run: |
-          chmod +x makelucky.sh
-          ./makelucky.sh
-
       - name: Get current date for versioning
         run: echo "VERSION=$(date +'%Y.%m.%d-%H%M%S')" >> $GITHUB_ENV
 

@@ -27,6 +27,7 @@ xz -z "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.tar"
 mv "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.tar.xz" "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz"
 
 md5sum "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz" | awk '{print $1}' > "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz.md5"
-cp "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz" "$GITHUB_WORKSPACE/dist/"
-cp "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz.md5" "$GITHUB_WORKSPACE/dist/"
+mkdir -p dist
+cp "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz" "./dist/"
+cp "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.txz.md5" "./dist/"
 rm -rf "$TMP_DIR"
