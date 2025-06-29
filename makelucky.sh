@@ -24,11 +24,11 @@ cd "$TMP_DIR/$VERSION" || { echo "Error: Failed to change directory to $TMP_DIR/
 echo "Changed current directory to: $(pwd)"
 
 echo "Copying files from $BASE_DIR to $TMP_DIR/$VERSION/lucky/"
-cp -Rf "$BASE_DIR/"* "$TMP_DIR/$VERSION/lucky/"
+cp -Rf "$GITHUB_WORKSPACE/$BASE_DIR/"* "$TMP_DIR/$VERSION/lucky/"
 echo "Files copied. Listing contents of $TMP_DIR/$VERSION/lucky/ after copy:"
 ls -R "$TMP_DIR/$VERSION/lucky/"
 
-chmod +x "$TMP_DIR/$VERSION/lucky/etc/lucky/lucky"
+chmod +x "./lucky/etc/lucky/lucky"
 echo "Set execute permission on lucky binary."
 
 mkdir "$TMP_DIR/$VERSION/install"
