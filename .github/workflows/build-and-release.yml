@@ -26,7 +26,7 @@ jobs:
 
       - name: Get current date for versioning
         id: date
-        run: echo "VERSION=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(date +'%Y.%m.%d-%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
