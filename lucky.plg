@@ -56,45 +56,52 @@ Default Password : 666
 <INLINE>
 
 install() {
-wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE" "$GIT_URL/$LAT_PACKAGE"
-wget -q -nc --show-progress --progress=bar:force:noscroll -O "$PLUGIN_DIR/$LAT_PACKAGE.md5" "$GIT_URL/$LAT_PACKAGE.md5"
+  GITHUB_API_URL="https://api.github.com/repos/stl88083365/unraid-lucky/contents/packages"
+  DOWNLOAD_DIR="/boot/config/plugins/lucky/download"
 
-if [ ! -f "$PLUGIN_DIR/$LAT_PACKAGE" ]; then
-    echo "The lucky package did not finish downloading, please check and retry!..."
+  mkdir -p "$DOWNLOAD_DIR"
+
+  echo "Fetching latest lucky package from GitHub..."
+  LATEST_PACKAGE_INFO=$(curl -s "$GITHUB_API_URL" | grep -oP '"name": "\Klucky_.*\.tar\.gz(?=")' | sort -V | tail -n 1)
+
+  if [ -z "$LATEST_PACKAGE_INFO" ]; then
+    echo "Error: Could not find the latest lucky package on GitHub."
     exit 1
-else
-    echo "The lucky package has been downloaded.."
-fi
+  fi
 
-if [ ! -d /boot/config/lucky ]; then
-    echo "Directory /boot/config/lucky does not exist, creating it now..."
-    mkdir -p /boot/config/lucky
-else
-    echo "Directory /boot/config/lucky already exists."
-fi
+  DOWNLOAD_URL="https://github.com/stl88083365/unraid-lucky/raw/main/packages/$LATEST_PACKAGE_INFO"
+  DOWNLOAD_PATH="$DOWNLOAD_DIR/$LATEST_PACKAGE_INFO"
 
-/sbin/installpkg "$PLUGIN_DIR/$LAT_PACKAGE"
+  wget -q -nc --show-progress --progress=bar:force:noscroll -O "$DOWNLOAD_PATH" "$DOWNLOAD_URL"
 
-if [ ! -f /boot/config/lucky/lucky ]; then
-    echo "No custom lucky files..."
-else
-    cp -rf /boot/config/lucky/lucky /etc/lucky/lucky
-    echo "Copying a customized lucky file succeeds."
-fi
+  if [ ! -f "$DOWNLOAD_PATH" ]; then
+      echo "The lucky package did not finish downloading, please check and retry!..."
+      exit 1
+  else
+      echo "The lucky package has been downloaded.."
+  fi
 
-chmod +x /etc/lucky/lucky
-sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
+  if [ ! -d /boot/config/lucky ]; then
+      echo "Directory /boot/config/lucky does not exist, creating it now..."
+      mkdir -p /boot/config/lucky
+  else
+      echo "Directory /boot/config/lucky already exists."
+  fi
+
+  echo "Extracting lucky package..."
+  tar -xzf "$DOWNLOAD_PATH" -C /boot/config/lucky/
+
+  if [ ! -f /boot/config/lucky/lucky ]; then
+      echo "No custom lucky files..."
+  else
+      cp -rf /boot/config/lucky/lucky /etc/lucky/lucky
+      echo "Copying a customized lucky file succeeds."
+  fi
+
+  chmod +x /etc/lucky/lucky
+  sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
 
 }
-
-LAT_PACKAGE="unraid-lucky.txz"
-VER_P="v2.3"
-PLUGIN_DIR="/boot/config/plugins/lucky/$VER_P"
-GIT_URL="https://github.com/stl88083365/unraid-lucky/releases/download/$VER_P"
-
-if [ ! -d "$PLUGIN_DIR" ]; then
-  mkdir -p "$PLUGIN_DIR"
-fi
 
 if [ ! -z "$(pidof lucky)" ]; then
     echo
