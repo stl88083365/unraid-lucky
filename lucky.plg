@@ -82,6 +82,12 @@ set -x # Enable debugging
 # Fetch latest release info
 LATEST_RELEASE_INFO=$(curl -s -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
 echo "LATEST_RELEASE_INFO: $LATEST_RELEASE_INFO"
+
+if [ -z "$LATEST_RELEASE_INFO" ]; then
+  echo "Error: Failed to fetch release info from GitHub API. Check network or API limits."
+  rm -rf &plugin; &emhttp;
+  exit 1
+fi
 DL_URL=""
 LAT_PACKAGE=""
 
