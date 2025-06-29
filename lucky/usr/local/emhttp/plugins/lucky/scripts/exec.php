@@ -21,10 +21,13 @@ function makeCron($frequency,$custom) {
 switch ($_POST['action']) {
 
 case 'stopProgram':
-
-    $output = shell_exec("pkill lucky");
-
-  break;
+    shell_exec("pkill lucky");
+    @unlink("/boot/config/plugins/lucky/plugin_update.cron");
+    $updateArray = readJsonFile("/boot/config/plugins/lucky/AutoRunSettings.json");
+    $updateArray['cron']['pluginCronFrequency'] = 'disabled';
+    writeJsonFile("/boot/config/plugins/lucky/AutoRunSettings.json",$updateArray);
+    exec("/usr/local/sbin/update_cron");
+    break;
 
 case 'autoUpdatePlugins':
   $pluginList            = getPostArray("pluginList","");
