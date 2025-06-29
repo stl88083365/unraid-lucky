@@ -88,7 +88,7 @@ LAT_PACKAGE=""
 # Try to find .txz asset in releases
 if [ -n "$LATEST_RELEASE_INFO" ]; then
   # Extract browser_download_url for .txz asset
-  DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"browser_download_url": "\K(https?://[^"]+\.txz)(?=")' | head -n 1)
+  DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -o '"browser_download_url": "[^"]*\.txz"' | head -n 1 | cut -d'"' -f4)
   echo "DL_URL from releases: $DL_URL"
   if [ -n "$DL_URL" ]; then
     # Extract filename from the URL
