@@ -1,16 +1,9 @@
 #!/bin/bash
 # Create Slackware package
 PLUGIN_NAME="lucky"
-BASE_DIR="/mnt/c/lucky"
+BASE_DIR="./lucky" # Changed to relative path
 TMP_DIR="/tmp/${PLUGIN_NAME}_${RANDOM}"
 VERSION="$(date +'%Y.%m.%d')"
-# 删除旧的打包文件(如果存在)
-if [ -f "$BASE_DIR/unraid-$PLUGIN_NAME.txz" ]; then
-    rm -f "$BASE_DIR/unraid-$PLUGIN_NAME.txz"
-fi
-if [ -f "$BASE_DIR/unraid-$PLUGIN_NAME.txz.md5" ]; then
-    rm -f "$BASE_DIR/unraid-$PLUGIN_NAME.txz.md5" 
-fi
 
 mkdir -p "$TMP_DIR/$VERSION"
 cd "$TMP_DIR/$VERSION" || exit 1
@@ -30,6 +23,6 @@ EOF
 
 makepkg -l n -c n "$TMP_DIR/unraid-$PLUGIN_NAME.txz"
 md5sum "$TMP_DIR/unraid-$PLUGIN_NAME.txz" | awk '{print $1}' > "$TMP_DIR/unraid-$PLUGIN_NAME.txz.md5"
-cp "$TMP_DIR/unraid-$PLUGIN_NAME.txz" "$BASE_DIR/"
-cp "$TMP_DIR/unraid-$PLUGIN_NAME.txz.md5" "$BASE_DIR/"
+cp "$TMP_DIR/unraid-$PLUGIN_NAME.txz" "." # Changed output directory to current
+cp "$TMP_DIR/unraid-$PLUGIN_NAME.txz.md5" "." # Changed output directory to current
 rm -rf "$TMP_DIR"

@@ -1,0 +1,60 @@
+name: Build and Release Lucky Plugin
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lucky/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install makepkg (for Slackware package creation)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y slackware-makepkg
+
+      - name: Make Lucky Package
+        run: |
+          chmod +x makelucky.sh
+          ./makelucky.sh
+
+      - name: Get current date for versioning
+        id: date
+        run: echo "VERSION=$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.date.outputs.VERSION }}
+          release_name: Release ${{ steps.date.outputs.VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset (txz)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./unraid-lucky.txz
+          asset_name: unraid-lucky-${{ steps.date.outputs.VERSION }}.txz
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset (md5)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./unraid-lucky.txz.md5
+          asset_name: unraid-lucky-${{ steps.date.outputs.VERSION }}.txz.md5
+          asset_content_type: text/plain
