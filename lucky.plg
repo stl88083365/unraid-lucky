@@ -80,7 +80,7 @@ fi
 get_version() {
 set -x # Enable debugging
 # Fetch latest release info
-LATEST_RELEASE_INFO=$(curl -s -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
+LATEST_RELEASE_INFO=$(curl -s -v -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
 echo "LATEST_RELEASE_INFO: $LATEST_RELEASE_INFO"
 
 if [ -z "$LATEST_RELEASE_INFO" ]; then
