@@ -50,20 +50,17 @@ $unRaidVersion = parse_ini_file("/etc/unraid-version");
 $backTopTopIncluded = (version_compare($unRaidVersion['version'],"6.4.0-rc9f","<=")) ? "false" : "true";
 
 # get the settings already selected
+$settings_file = "/boot/config/plugins/$plugin/AutoRunSettings.json";
+$updateSettings = json_decode(@file_get_contents($settings_file), true);
 
-$updateSettings = json_decode(@file_get_contents("/boot/config/plugins/$plugin/AutoRunSettings.json"),true);
-if ( ! $updateSettings ) {
-	$updateSettings['pluginCronFrequency'] = "Daily";
+$current_cron_frequency = 'disabled'; // Default to No
+if (isset($updateSettings['cron']['pluginCronFrequency'])) {
+    $current_cron_frequency = $updateSettings['cron']['pluginCronFrequency'];
 }
 
-$updateSettings['pluginCronFrequency'] = ! ($updateSettings['pluginCronFrequency'] ?? false) ? "Daily" : "";
-
 $pluginCronScript = "";
-if ( is_array($updateSettings['cron'] ?? null) ) {
-	$cronSettings = array_keys($updateSettings['cron']);
-	foreach ($cronSettings as $setting) {
-		$pluginCronScript .= "$('#$setting').val('".$updateSettings['cron'][$setting]."');";
-	}
+if (isset($updateSettings['cron']['pluginCronCustom'])) {
+    $pluginCronScript .= "$('#pluginCronCustom').val('".$updateSettings['cron']['pluginCronCustom']."');";
 }
 
 ?>
@@ -277,6 +274,7 @@ function apply() {
 		if (data) {
 			$("#testing").html(data);
 		}
+    location.reload();
 	});
 	$(".applyButton").prop("disabled",true);
 }
@@ -317,9 +315,9 @@ function changeApply() {
 <table>
 
 <tr><td><strong><?tr("lucky process guard:");?></strong></td>
-<td><select id='pluginCronFrequency' class='pluginCron' value='Custom'>
-	<option value='disabled'><?tr("No");?></option>
-	<option value='Custom'><?tr("Yes");?></option>
+<td><select id='pluginCronFrequency' class='pluginCron'>
+	<option value='disabled' <?= ($current_cron_frequency == 'disabled') ? 'selected' : '' ?>><?tr("No");?></option>
+	<option value='Custom' <?= ($current_cron_frequency == 'Custom') ? 'selected' : '' ?>><?tr("Yes");?></option>
 </select></td></tr>
 </tr></table>
 </div>
