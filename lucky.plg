@@ -56,29 +56,79 @@ Default Password : 666
 <INLINE>
 
 install() {
-  GITHUB_API_URL="https://api.github.com/repos/stl88083365/unraid-lucky/contents/packages"
+  REPO_OWNER="stl88083365"
+  REPO_NAME="unraid-lucky"
   DOWNLOAD_DIR="/boot/config/plugins/lucky/download"
 
   mkdir -p "$DOWNLOAD_DIR"
 
-  echo "Fetching latest lucky package from GitHub..."
-  LATEST_PACKAGE_INFO=$(curl -s "$GITHUB_API_URL" | grep -oP '"name": "\Klucky_.*\.tar\.gz(?=")' | sort -V | tail -n 1)
+  echo "Checking for latest lucky package..."
 
-  if [ -z "$LATEST_PACKAGE_INFO" ]; then
-    echo "Error: Could not find the latest lucky package on GitHub."
+  # Get latest release info
+  LATEST_RELEASE_TAG=""
+  LATEST_RELEASE_URL=""
+  LATEST_RELEASE_INFO=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest")
+  if echo "$LATEST_RELEASE_INFO" | grep -q "tag_name"; then
+    LATEST_RELEASE_TAG=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"tag_name": "\K[^"]+' | head -n 1)
+    LATEST_RELEASE_URL=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"browser_download_url": "\K[^"]+\.tar\.gz(?=")' | head -n 1)
+  fi
+
+  # Get latest package from packages directory
+  LATEST_PACKAGE_NAME=""
+  LATEST_PACKAGE_URL=""
+  LATEST_PACKAGE_INFO=$(curl -s "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/packages" | grep -oP '"name": "\Klucky_.*\.tar\.gz(?=")' | sort -V | tail -n 1)
+  if [ -n "$LATEST_PACKAGE_INFO" ]; then
+    LATEST_PACKAGE_NAME="$LATEST_PACKAGE_INFO"
+    LATEST_PACKAGE_URL="https://github.com/$REPO_OWNER/$REPO_NAME/raw/main/packages/$LATEST_PACKAGE_NAME"
+  fi
+
+  # Determine the latest version
+  CURRENT_LATEST_VERSION=""
+  FINAL_DOWNLOAD_URL=""
+  FINAL_DOWNLOAD_NAME=""
+
+  if [ -n "$LATEST_RELEASE_TAG" ] && [ -n "$LATEST_PACKAGE_NAME" ]; then
+    # Extract version from package name (e.g., lucky_2.17.8_Linux_x86_64_wanji.tar.gz -> 2.17.8)
+    PACKAGE_VERSION=$(echo "$LATEST_PACKAGE_NAME" | sed -E 's/lucky_([0-9.]+).*/\1/')
+
+    # Compare versions
+    if printf '%s\n' "$LATEST_RELEASE_TAG" "$PACKAGE_VERSION" | sort -V | tail -n 1 | grep -q "$LATEST_RELEASE_TAG"; then
+      echo "Latest version found in releases: $LATEST_RELEASE_TAG"
+      CURRENT_LATEST_VERSION="$LATEST_RELEASE_TAG"
+      FINAL_DOWNLOAD_URL="$LATEST_RELEASE_URL"
+      FINAL_DOWNLOAD_NAME=$(basename "$LATEST_RELEASE_URL")
+    else
+      echo "Latest version found in packages directory: $PACKAGE_VERSION"
+      CURRENT_LATEST_VERSION="$PACKAGE_VERSION"
+      FINAL_DOWNLOAD_URL="$LATEST_PACKAGE_URL"
+      FINAL_DOWNLOAD_NAME="$LATEST_PACKAGE_NAME"
+    fi
+  elif [ -n "$LATEST_RELEASE_TAG" ]; then
+    echo "Only release found: $LATEST_RELEASE_TAG"
+    CURRENT_LATEST_VERSION="$LATEST_RELEASE_TAG"
+    FINAL_DOWNLOAD_URL="$LATEST_RELEASE_URL"
+    FINAL_DOWNLOAD_NAME=$(basename "$LATEST_RELEASE_URL")
+  elif [ -n "$LATEST_PACKAGE_NAME" ]; then
+    echo "Only package found in packages directory: $LATEST_PACKAGE_NAME"
+    PACKAGE_VERSION=$(echo "$LATEST_PACKAGE_NAME" | sed -E 's/lucky_([0-9.]+).*/\1/')
+    CURRENT_LATEST_VERSION="$PACKAGE_VERSION"
+    FINAL_DOWNLOAD_URL="$LATEST_PACKAGE_URL"
+    FINAL_DOWNLOAD_NAME="$LATEST_PACKAGE_NAME"
+  else
+    echo "Error: Could not find any lucky package in releases or packages directory."
     exit 1
   fi
 
-  DOWNLOAD_URL="https://github.com/stl88083365/unraid-lucky/raw/main/packages/$LATEST_PACKAGE_INFO"
-  DOWNLOAD_PATH="$DOWNLOAD_DIR/$LATEST_PACKAGE_INFO"
+  DOWNLOAD_PATH="$DOWNLOAD_DIR/$FINAL_DOWNLOAD_NAME"
 
-  wget -q -nc --show-progress --progress=bar:force:noscroll -O "$DOWNLOAD_PATH" "$DOWNLOAD_URL"
+  echo "Downloading $FINAL_DOWNLOAD_NAME from $FINAL_DOWNLOAD_URL..."
+  wget -q -nc --show-progress --progress=bar:force:noscroll -O "$DOWNLOAD_PATH" "$FINAL_DOWNLOAD_URL"
 
   if [ ! -f "$DOWNLOAD_PATH" ]; then
-      echo "The lucky package did not finish downloading, please check and retry!..."
+      echo "The lucky package did not finish downloading, please check and retry!... ($DOWNLOAD_PATH)"
       exit 1
   else
-      echo "The lucky package has been downloaded.."
+      echo "The lucky package has been downloaded to $DOWNLOAD_PATH."
   fi
 
   if [ ! -d /boot/config/lucky ]; then
@@ -88,11 +138,11 @@ install() {
       echo "Directory /boot/config/lucky already exists."
   fi
 
-  echo "Extracting lucky package..."
-  tar -xzf "$DOWNLOAD_PATH" -C /boot/config/lucky/
+  echo "Extracting lucky package from $DOWNLOAD_PATH to /boot/config/lucky/..."
+  tar -xzf "$DOWNLOAD_PATH" -C /boot/config/lucky/ --strip-components=1 # --strip-components=1 to remove the top-level directory if present in tarball
 
   if [ ! -f /boot/config/lucky/lucky ]; then
-      echo "No custom lucky files..."
+      echo "No custom lucky files found after extraction. Please check the package content."
   else
       cp -rf /boot/config/lucky/lucky /etc/lucky/lucky
       echo "Copying a customized lucky file succeeds."
