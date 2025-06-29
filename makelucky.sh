@@ -46,7 +46,9 @@ echo "slack-desc created."
 # Create .tar.xz archive (renamed to .txz)
 # Change directory to the temporary build directory to correctly tar its contents
 echo "Creating tar archive from current directory..."
-tar -cvf "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.tar" .)
+echo "Current directory for tar: $(pwd)"
+ls -l
+tar -cvf "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.tar" .
 echo "Tar archive created. Listing:"
 ls -l "$TMP_DIR/unraid-$PLUGIN_NAME-$VERSION.tar"
 
