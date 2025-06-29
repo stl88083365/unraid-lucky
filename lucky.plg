@@ -78,30 +78,37 @@ fi
 }
 
 get_version() {
+set -x # Enable debugging
 # Fetch latest release info
-LATEST_RELEASE_INFO=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
+LATEST_RELEASE_INFO=$(curl -s -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
+echo "LATEST_RELEASE_INFO: $LATEST_RELEASE_INFO"
 DL_URL=""
 LAT_PACKAGE=""
 
 # Try to find .txz asset in releases
 if [ -n "$LATEST_RELEASE_INFO" ]; then
   # Extract browser_download_url for .txz asset
-  DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"browser_download_url": "\K[^"]+\.txz(?=")' | head -n 1)
+  DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -oP '"browser_download_url": "\K(https?://[^"]+\.txz)(?=")' | head -n 1)
+  echo "DL_URL from releases: $DL_URL"
   if [ -n "$DL_URL" ]; then
     # Extract filename from the URL
     LAT_PACKAGE=$(basename "$DL_URL")
+    echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
   fi
 fi
 
 if [ -z "$DL_URL" ]; then
+  echo "No .txz asset found in releases. Falling back to packages directory."
   # Fallback to packages directory if no release asset found
-  LAT_PACKAGE=$(curl -s "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/packages" | grep -oP '"name": "\Kunraid-lucky-.*\.txz(?=")' | sort -V | tail -n 1)
+  LAT_PACKAGE=$(curl -s -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/packages" | grep -oP '"name": "\K(unraid-lucky-.*\.txz)(?=")' | sort -V | tail -n 1)
+  echo "LAT_PACKAGE from packages: $LAT_PACKAGE"
   if [ -z "$LAT_PACKAGE" ]; then
     echo "Error: Could not find any lucky package in releases or packages directory."
     rm -rf &plugin; &emhttp;
     exit 1
   fi
   DL_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/raw/main/packages/${LAT_PACKAGE}" # Construct full URL for fallback
+  echo "DL_URL from packages: $DL_URL"
 fi
 
 if [ -z "$LAT_PACKAGE" ]; then
@@ -115,6 +122,7 @@ if [ -z "$LAT_PACKAGE" ]; then
     LAT_PACKAGE=${CUR_V}
   fi
 fi
+set +x # Disable debugging
 }
 
 #Check if package is already downloaded
