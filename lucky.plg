@@ -94,7 +94,7 @@ LAT_PACKAGE=""
 # Try to find .txz asset in releases
 if [ -n "$LATEST_RELEASE_INFO" ]; then
   # Extract browser_download_url for .txz asset
-  DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep '"browser_download_url":' | awk -F'"' '{print $4}' | grep '.txz$' | head -n 1)
+  DL_URL=$(echo "$LATEST_RELEASE_INFO" | sed -n 's/.*"browser_download_url": "\(.*\.txz\)".*/\1/p' | head -n 1)
   echo "DL_URL from releases: $DL_URL"
   if [ -n "$DL_URL" ]; then
     # Extract filename from the URL
