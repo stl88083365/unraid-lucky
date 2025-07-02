@@ -85,14 +85,14 @@
         fi
 
         # Try to find .txz asset in releases
-        if [ -n "$LATEST_RELEASE_INFO" ]; then
-          DL_URL=$(echo "$LATEST_RELEASE_INFO" | awk '/"name":/ && \.txz"/ {found=1} found && /"browser_download_url":/ {for(i=1;i<=NF;i++) if($i ~ /http/) print $i; exit}')
-          echo "DL_URL from releases: $DL_URL"
-          if [ -n "$DL_URL" ]; then
-            LAT_PACKAGE=$(basename "$DL_URL")
-            echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
-          fi
-        fi
+       # if [ -n "$LATEST_RELEASE_INFO" ]; then
+       #   DL_URL=$(echo "$LATEST_RELEASE_INFO" | awk '/"name":/ && \.txz"/ {found=1} found && /"browser_download_url":/ {for(i=1;i<=NF;i++) if($i ~ /http/) print $i; exit}')
+       #   echo "DL_URL from releases: $DL_URL"
+       #   if [ -n "$DL_URL" ]; then
+       #     LAT_PACKAGE=$(basename "$DL_URL")
+       #     echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
+       #   fi
+       # fi
 
         if [ -z "$LAT_PACKAGE" ]; then
           if [ -z "$CUR_V" ]; then
