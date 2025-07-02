@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
   <!ENTITY name "lucky">
   <!ENTITY author "stl88083365">
-  <!ENTITY version "2025.07.29">
+  <!ENTITY version "2025.07.02">
   <!ENTITY launch "Settings/lucky">
   <!ENTITY gitURL "https://github.com/&author;/unraid-&name;/raw/main">
   <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -14,6 +14,8 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0-beta31">
   <CHANGES>
+    ###2025.07.02
+    - Updated version of lucky. 
     ###2024.07.28
     - Added a custom suffix to temporarily save in cookies. 
 
@@ -53,82 +55,55 @@
     <INLINE>
       download() {
         # Download lucky Package
-        if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}" "${DL_URL}" ; then
-          # MD5 check might need adjustment if releases don&apos;t provide .md5 files
-          # wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
-          # if [ "$(md5sum &packages;/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
-          #   echo
-          #   echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
-          #   echo "--------------------------------CHECKSUM ERROR!---------------------------------"
-          #   rm -rf &plugin; &emhttp;
-          #   exit 1
-          # fi
+        if wget -q -nc --show-progress --progress=bar:force:noscroll -O "/boot/config/plugins/lucky/packages/${LAT_PACKAGE}" "${DL_URL}" ; then
           echo
           echo "----Successfully downloaded lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3), please wait!----"
         else
           echo
-          echo "--------------Can&apos;t download lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)-----------------"
-          rm -rf &plugin; &emhttp;
+          echo "--------------Cannot download lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)-----------------"
+          rm -rf /boot/config/plugins/lucky /usr/local/emhttp/plugins/lucky
           exit 1
         fi
       }
 
       get_version() {
-        set -x # Enable debugging
         # Fetch latest release info
-        LATEST_RELEASE_INFO=$(curl -s -v -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
-        echo "LATEST_RELEASE_INFO: $LATEST_RELEASE_INFO"
-
+        LATEST_RELEASE_INFO=$(curl -s -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
+        
         if [ -z "$LATEST_RELEASE_INFO" ]; then
           echo "Error: Failed to fetch release info from GitHub API. Check network or API limits."
-          rm -rf &plugin; &emhttp;
+          rm -rf /boot/config/plugins/lucky /usr/local/emhttp/plugins/lucky
           exit 1
         fi
 
-        # Try to find .txz asset in releases，参考 nvidia-vgpu-driver.plg 逻辑
-        DL_URL=""
-        LAT_PACKAGE=""
-        if [ -n "$LATEST_RELEASE_INFO" ]; then
-          # 只处理 assets 块，逐行查找
-          in_assets=0
-          found=0
-          while IFS= read -r line; do
-            if echo "$line" | grep -q '"assets"'; then
-              in_assets=1
-            fi
-            if [ $in_assets -eq 1 ] &amp;&amp; echo "$line" | grep -q '"name"[ ]*:[ ]*".*\.txz"'; then
-              found=1
-            fi
-            if [ $in_assets -eq 1 ] &amp;&amp; [ $found -eq 1 ] &amp;&amp; echo "$line" | grep -q '"browser_download_url"'; then
-              DL_URL=$(echo "$line" | awk -F'"' '{print $4}')
-              break
-            fi
-          done <<< "$LATEST_RELEASE_INFO"
-          if [ -n "$DL_URL" ]; then
-            LAT_PACKAGE=$(basename "$DL_URL")
-          fi
+        # Extract download URL for .txz file using simpler method
+        DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -o '"browser_download_url":"[^"]*\.txz"' | head -1 | sed 's/"browser_download_url":"//' | sed 's/"$//')
+        
+        if [ -z "$DL_URL" ]; then
+          echo "Error: Could not find .txz download URL in release assets"
+          rm -rf /boot/config/plugins/lucky /usr/local/emhttp/plugins/lucky
+          exit 1
         fi
+        
+        LAT_PACKAGE=$(basename "$DL_URL")
         echo "DL_URL from releases: $DL_URL"
-        if [ -n "$DL_URL" ]; then
-          echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
-        fi
-        set +x # Disable debugging
+        echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
       }
 
       check() {
-        if ! ls -1 &packages;/ | grep -q "${PACKAGE}" ; then
+        if ! ls -1 /boot/config/plugins/lucky/packages/ 2>/dev/null | grep -q "${PACKAGE}" ; then
           get_version
           echo
           echo "+=============================================================================="
           echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
           echo "|"
-          echo "| Don&apos;t close this window with the red 'X' in the top right corner until the 'DONE' button is displayed!"
+          echo "| Do not close this window with the red X in the top right corner until the DONE button is displayed!"
           echo "|"
           echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
           echo "+=============================================================================="
           echo
           echo "-----------------Downloading lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)------------------"
-          echo "----------This could take some time, please don&apos;t close this window!------------"
+          echo "----------This could take some time, please do not close this window!------------"
           download
         else
           LAT_PACKAGE=$CUR_V
@@ -138,13 +113,15 @@
       }
 
       install_package() {
-        /sbin/installpkg "&packages;/${LAT_PACKAGE}"
+        /sbin/installpkg "/boot/config/plugins/lucky/packages/${LAT_PACKAGE}"
         if [ ! -f /etc/lucky/lucky ]; then
           echo "Error: lucky binary not found after installation. Please check package content."
           exit 1
         fi
         chmod +x /etc/lucky/lucky
-        sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
+        if [ -f /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh ]; then
+          sh /usr/local/emhttp/plugins/lucky/scripts/luckypid.sh
+        fi
       }
 
       activate() {
@@ -155,22 +132,22 @@
       REPO_NAME="unraid-lucky"
       PACKAGE="unraid-lucky"
 
-      if [ ! -d "&packages;" ]; then
-        mkdir -p "&packages;"
+      if [ ! -d "/boot/config/plugins/lucky/packages" ]; then
+        mkdir -p "/boot/config/plugins/lucky/packages"
         CUR_V=""
       else
-        CUR_V="$(ls -p &packages; 2>/dev/null | grep -E -v '\.md5$' | sort -V | tail -1)"
+        CUR_V="$(ls -p /boot/config/plugins/lucky/packages/ 2>/dev/null | grep -E -v '\.md5$' | sort -V | tail -1)"
       fi
 
-      if [ ! -f "&plugin;/settings.cfg" ]; then
+      if [ ! -f "/boot/config/plugins/lucky/settings.cfg" ]; then
         echo 'first_installation=true
 driver_version=latest
 disable_xconfig=false
-update_check=true' > "&plugin;/settings.cfg"
+update_check=true' > "/boot/config/plugins/lucky/settings.cfg"
       fi
 
-      if ! grep -q "update_check=" "&plugin;/settings.cfg"; then
-        echo "update_check=true" >> "&plugin;/settings.cfg"
+      if ! grep -q "update_check=" "/boot/config/plugins/lucky/settings.cfg"; then
+        echo "update_check=true" >> "/boot/config/plugins/lucky/settings.cfg"
       fi
 
       check
@@ -200,8 +177,8 @@ update_check=true' > "&plugin;/settings.cfg"
       else
         echo "Lucky process is not running."
       fi
-      rm -rf &plugin;
-      rm -rf &emhttp;
+      rm -rf /boot/config/plugins/lucky
+      rm -rf /usr/local/emhttp/plugins/lucky
       rm -rf /etc/lucky
       echo
       echo "----------------------------------------------------------------------------"
