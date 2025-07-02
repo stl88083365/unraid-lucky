@@ -86,7 +86,13 @@
 
         # Try to find .txz asset in releases
         if [ -n "$LATEST_RELEASE_INFO" ]; then
-          DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -A 10 '"name": "unraid-lucky-.*\\.txz"' | grep '"browser_download_url":' | head -n 1 | awk -F'"' '{print $4}')
+          DL_URL=$(echo "$LATEST_RELEASE_INFO" | awk '
+            /"name":/ && \.txz"/ {found=1}
+            found && /"browser_download_url":/ {
+              for(i=1;i<=NF;i++) if($i ~ /http/) print $i
+              exit
+            }
+          ' | sed 's/[",]//g' | head -n 1)
           echo "DL_URL from releases: $DL_URL"
           if [ -n "$DL_URL" ]; then
             LAT_PACKAGE=$(basename "$DL_URL")
