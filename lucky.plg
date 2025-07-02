@@ -12,14 +12,7 @@
   <!ENTITY packages "/boot/config/plugins/&name;/packages">
 ]>
 
-<PLUGIN
-  name="&name;"
-  author="&author;"
-  version="&version;"
-  launch="&launch;"
-  pluginURL="&pluginURL;"
-  min="6.9.0-beta31"
->
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0-beta31">
   <CHANGES>
     ###2024.07.28
     - Added a custom suffix to temporarily save in cookies. 
@@ -58,68 +51,84 @@
 
   <FILE Run="/bin/bash">
     <INLINE>
-      get_version() {
-        REPO_OWNER="stl88083365"
-        REPO_NAME="unraid-lucky"
-        API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
-        LATEST_RELEASE_INFO=$(curl -s -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "$API_URL")
-
-        if [ -z "$LATEST_RELEASE_INFO" ]; then
-          echo "获取 GitHub release 信息失败"
+      download() {
+        #Download lucky Package
+        if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}" "${DL_URL}" ; then
+          # MD5 check might need adjustment if releases don&apos;t provide .md5 files
+          # wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
+          # if [ "$(md5sum &packages;/${LAT_PACKAGE} | awk '{print $1}')" != "$(cat &packages;/${LAT_PACKAGE}.md5 | awk '{print $1}')" ]; then
+          #   echo
+          #   echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
+          #   echo "--------------------------------CHECKSUM ERROR!---------------------------------"
+          #   rm -rf &plugin; &emhttp;
+          #   exit 1
+          # fi
+          echo
+          echo "----Successfully downloaded lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3), please wait!----"
+        else
+          echo
+          echo "--------------Can&apos;t download lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)-----------------"
           rm -rf &plugin; &emhttp;
           exit 1
         fi
-
-        DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -A 10 '"name": "unraid-lucky-.*\\.txz"' | grep '"browser_download_url":' | head -n 1 | awk -F'"' '{print $4}')
-        LAT_PACKAGE=$(basename "$DL_URL")
       }
 
-      download_lucky() {
-        local url="$1"
-        local out="$2"
-        local retry=3
-        local count=0
-        local success=0
+      get_version() {
+        set -x # Enable debugging
+        # Fetch latest release info
+        LATEST_RELEASE_INFO=$(curl -s -v -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
+        echo "LATEST_RELEASE_INFO: $LATEST_RELEASE_INFO" 
 
-        while [ $count -lt $retry ]; do
-          echo "正在下载 $url 到 $out (第$((count+1))次尝试)..."
-          wget -q --show-progress --progress=bar:force:noscroll -O "$out" "$url" && success=1 && break
-          count=$((count+1))
-          sleep 2
-        done
-
-        if [ $success -eq 1 ]; then
-          echo "下载成功: $out"
-          return 0
-        else
-          echo "下载失败: $url"
-          return 1
+        if [ -z "$LATEST_RELEASE_INFO" ]; then
+          echo "Error: Failed to fetch release info from GitHub API. Check network or API limits."
+          rm -rf &plugin; &emhttp;
+          exit 1
         fi
+        DL_URL=""
+        LAT_PACKAGE=""
+
+        # Try to find .txz asset in releases
+        if [ -n "$LATEST_RELEASE_INFO" ]; then
+          # Extract browser_download_url for .txz asset
+          DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep '"browser_download_url":' | awk -F'"' '{print $4}' | grep '.txz$' | head -n 1)
+          echo "DL_URL from releases: $DL_URL"
+          if [ -n "$DL_URL" ]; then
+            # Extract filename from the URL
+            LAT_PACKAGE=$(basename "$DL_URL")
+            echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
+          fi
+        fi
+
+        if [ -z "$LAT_PACKAGE" ]; then
+          if [ -z "$CUR_V" ]; then
+            echo
+            echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
+            echo "---Can&apos;t get latest lucky version and found no installed local lucky---"
+            rm -rf &plugin; &emhttp;
+            exit 1
+          else
+            LAT_PACKAGE=${CUR_V}
+          fi
+        fi
+        set +x # Disable debugging
       }
 
       check() {
         if ! ls -1 &packages;/ | grep -q "${PACKAGE}" ; then
           get_version
-          if [ -z "$DL_URL" ]; then
-            echo "未找到可用的 lucky .txz 下载链接，安装中止。"
-            rm -rf &plugin; &emhttp;
-            exit 1
-          fi
-          PKG_PATH="&packages;/$LAT_PACKAGE"
           echo
           echo "+=============================================================================="
           echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
           echo "|"
-          echo "| Don&apos;t close this window with the red &apos;X&apos; in the top right corner until the &apos;DONE&apos; button is displayed!"
+          echo "| Don&apos;t close this window with the red 'X' in the top right corner until the 'DONE' button is displayed!"
           echo "|"
           echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
           echo "+=============================================================================="
           echo
           echo "-----------------Downloading lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)------------------"
           echo "----------This could take some time, please don&apos;t close this window!------------"
-          download_lucky "$DL_URL" "$PKG_PATH" || { rm -f "$PKG_PATH"; rm -rf &plugin; &emhttp;; exit 1; }
+          download
         else
-          CUR_V="$(ls -p &packages; 2>/dev/null | grep -E -v '\.md5$' | sort -V | tail -1)"
           LAT_PACKAGE=$CUR_V
           echo
           echo "--------------------lucky v$(echo $LAT_PACKAGE | cut -d '-' -f3) found locally---------------------"
