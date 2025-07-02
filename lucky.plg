@@ -96,11 +96,10 @@
 
         # Try to find .txz asset in releases
         if [ -n "$LATEST_RELEASE_INFO" ]; then
-          # 更健壮的纯 shell 提取 .txz 下载链接
-          DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -o '"browser_download_url"[^"]*"[^"]*' | grep '.txz' | head -n 1 | awk -F'"' '{print $4}')
+          # 纯shell方式，先找到 .txz 的 name，再找对应的 browser_download_url
+          DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -A 10 '"name": "unraid-lucky-.*\\.txz"' | grep '"browser_download_url":' | head -n 1 | awk -F'"' '{print $4}')
           echo "DL_URL from releases: $DL_URL"
           if [ -n "$DL_URL" ]; then
-            # Extract filename from the URL
             LAT_PACKAGE=$(basename "$DL_URL")
             echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
           fi
