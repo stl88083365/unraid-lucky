@@ -1,17 +1,18 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
-<!ENTITY name "lucky">
-<!ENTITY author "stl88083365">
-<!ENTITY version "2025.07.29">
-<!ENTITY launch "Settings/lucky">
-<!ENTITY gitURL "https://github.com/&author;/unraid-&name;/raw/main">
-<!ENTITY pluginURL "&gitURL;/&name;.plg">
-<!ENTITY md5 "06d8080d582a92196c9060c1429f9270">
-<!ENTITY plugin "/boot/config/plugins/&name;">
-<!ENTITY emhttp "/usr/local/emhttp/plugins/&name;">
-<!ENTITY packages "/boot/config/plugins/&name;/packages">
+  <!ENTITY name "lucky">
+  <!ENTITY author "stl88083365">
+  <!ENTITY version "2025.07.29">
+  <!ENTITY launch "Settings/lucky">
+  <!ENTITY gitURL "https://github.com/&author;/unraid-&name;/raw/main">
+  <!ENTITY pluginURL "&gitURL;/&name;.plg">
+  <!ENTITY md5 "06d8080d582a92196c9060c1429f9270">
+  <!ENTITY plugin "/boot/config/plugins/&name;">
+  <!ENTITY emhttp "/usr/local/emhttp/plugins/&name;">
+  <!ENTITY packages "/boot/config/plugins/&name;/packages">
 ]>
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0-beta31">
+
+<PLUGIN  name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0-beta31">
 
 <CHANGES>
 ###2024.07.28
