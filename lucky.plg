@@ -96,10 +96,10 @@
             if echo "$line" | grep -q '"assets"'; then
               in_assets=1
             fi
-            if [ $in_assets -eq 1 ] && echo "$line" | grep -q '"name"[ ]*:[ ]*".*\.txz"'; then
+            if [ $in_assets -eq 1 ] &amp;&amp; echo "$line" | grep -q '"name"[ ]*:[ ]*".*\.txz"'; then
               found=1
             fi
-            if [ $in_assets -eq 1 ] && [ $found -eq 1 ] && echo "$line" | grep -q '"browser_download_url"'; then
+            if [ $in_assets -eq 1 ] &amp;&amp; [ $found -eq 1 ] &amp;&amp; echo "$line" | grep -q '"browser_download_url"'; then
               DL_URL=$(echo "$line" | awk -F'"' '{print $4}')
               break
             fi
