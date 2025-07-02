@@ -58,71 +58,54 @@
 
   <FILE Run="/bin/bash">
     <INLINE>
-      download() {
-        #Download lucky Package
-        if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}" "${DL_URL}" ; then
-          # MD5 check might need adjustment if releases don&apos;t provide .md5 files
-          # wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
-          # if [ "$(md5sum &packages;/${LAT_PACKAGE} | awk &apos;{print $1}&apos;)" != "$(cat &packages;/${LAT_PACKAGE}.md5 | awk &apos;{print $1}&apos;)" ]; then
-          #   echo
-          #   echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
-          #   echo "--------------------------------CHECKSUM ERROR!---------------------------------"
-          #   rm -rf &plugin; &emhttp;
-          #   exit 1
-          # fi
-          echo
-          echo "----Successfully downloaded lucky Package v$(echo $LAT_PACKAGE | cut -d &apos;-&apos; -f3), please wait!----"
-        else
-          echo
-          echo "--------------Can&apos;t download lucky Package v$(echo $LAT_PACKAGE | cut -d &apos;-&apos; -f3)-----------------"
-          rm -rf &plugin; &emhttp;
-          exit 1
-        fi
-      }
-
       get_version() {
-        set -x # Enable debugging
-        # Fetch latest release info
-        LATEST_RELEASE_INFO=$(curl -s -v -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
-        echo "LATEST_RELEASE_INFO: $LATEST_RELEASE_INFO" 
+        REPO_OWNER="stl88083365"
+        REPO_NAME="unraid-lucky"
+        API_URL="https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
+        LATEST_RELEASE_INFO=$(curl -s -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "$API_URL")
 
         if [ -z "$LATEST_RELEASE_INFO" ]; then
-          echo "Error: Failed to fetch release info from GitHub API. Check network or API limits."
+          echo "获取 GitHub release 信息失败"
           rm -rf &plugin; &emhttp;
           exit 1
         fi
-        DL_URL=""
-        LAT_PACKAGE=""
 
-        # Try to find .txz asset in releases
-        if [ -n "$LATEST_RELEASE_INFO" ]; then
-          # 纯shell方式，先找到 .txz 的 name，再找对应的 browser_download_url
-          DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -A 10 '"name": "unraid-lucky-.*\\.txz"' | grep '"browser_download_url":' | head -n 1 | awk -F'"' '{print $4}')
-          echo "DL_URL from releases: $DL_URL"
-          if [ -n "$DL_URL" ]; then
-            LAT_PACKAGE=$(basename "$DL_URL")
-            echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
-          fi
-        fi
-
-        if [ -z "$LAT_PACKAGE" ]; then
-          if [ -z "$CUR_V" ]; then
-            echo
-            echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
-            echo "---Can&apos;t get latest lucky version and found no installed local lucky---"
-            rm -rf &plugin; &emhttp;
-            exit 1
-          else
-            LAT_PACKAGE=${CUR_V}
-          fi
-        fi
-        set +x # Disable debugging
+        DL_URL=$(echo "$LATEST_RELEASE_INFO" | grep -A 10 '"name": "unraid-lucky-.*\\.txz"' | grep '"browser_download_url":' | head -n 1 | awk -F'"' '{print $4}')
+        LAT_PACKAGE=$(basename "$DL_URL")
       }
 
-      #Check if package is already downloaded
+      download_lucky() {
+        local url="$1"
+        local out="$2"
+        local retry=3
+        local count=0
+        local success=0
+
+        while [ $count -lt $retry ]; do
+          echo "正在下载 $url 到 $out (第$((count+1))次尝试)..."
+          wget -q --show-progress --progress=bar:force:noscroll -O "$out" "$url" && success=1 && break
+          count=$((count+1))
+          sleep 2
+        done
+
+        if [ $success -eq 1 ]; then
+          echo "下载成功: $out"
+          return 0
+        else
+          echo "下载失败: $url"
+          return 1
+        fi
+      }
+
       check() {
         if ! ls -1 &packages;/ | grep -q "${PACKAGE}" ; then
           get_version
+          if [ -z "$DL_URL" ]; then
+            echo "未找到可用的 lucky .txz 下载链接，安装中止。"
+            rm -rf &plugin; &emhttp;
+            exit 1
+          fi
+          PKG_PATH="&packages;/$LAT_PACKAGE"
           echo
           echo "+=============================================================================="
           echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
@@ -132,20 +115,19 @@
           echo "| WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING - WARNING"
           echo "+=============================================================================="
           echo
-          echo "-----------------Downloading lucky Package v$(echo $LAT_PACKAGE | cut -d &apos;-&apos; -f3)------------------"
+          echo "-----------------Downloading lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)------------------"
           echo "----------This could take some time, please don&apos;t close this window!------------"
-          download
+          download_lucky "$DL_URL" "$PKG_PATH" || { rm -f "$PKG_PATH"; rm -rf &plugin; &emhttp;; exit 1; }
         else
+          CUR_V="$(ls -p &packages; 2>/dev/null | grep -E -v '\.md5$' | sort -V | tail -1)"
           LAT_PACKAGE=$CUR_V
           echo
-          echo "--------------------lucky v$(echo $LAT_PACKAGE | cut -d &apos;-&apos; -f3) found locally---------------------"
+          echo "--------------------lucky v$(echo $LAT_PACKAGE | cut -d '-' -f3) found locally---------------------"
         fi
       }
 
-      #Install package
-      install_package() { # Renamed to avoid conflict with main install() function
+      install_package() {
         /sbin/installpkg "&packages;/${LAT_PACKAGE}"
-        # Assuming lucky binary is extracted to /etc/lucky/lucky
         if [ ! -f /etc/lucky/lucky ]; then
           echo "Error: lucky binary not found after installation. Please check package content."
           exit 1
@@ -155,16 +137,12 @@
       }
 
       activate() {
-        # Placeholder for any activation logic specific to lucky
-        # For example, starting the lucky service
         echo "Activating lucky..."
       }
 
-      #Set variables
       REPO_OWNER="stl88083365"
       REPO_NAME="unraid-lucky"
-      PACKAGE="unraid-lucky" # Base name for the package
-      # DL_URL will be set in get_version based on release or packages
+      PACKAGE="unraid-lucky"
 
       if [ ! -d "&packages;" ]; then
         mkdir -p "&packages;"
@@ -173,7 +151,6 @@
         CUR_V="$(ls -p &packages; 2>/dev/null | grep -E -v '\.md5$' | sort -V | tail -1)"
       fi
 
-      #Create settings file if not found
       if [ ! -f "&plugin;/settings.cfg" ]; then
         echo 'first_installation=true
 driver_version=latest
@@ -181,18 +158,15 @@ disable_xconfig=false
 update_check=true' > "&plugin;/settings.cfg"
       fi
 
-      #Add update check entry if not exists
       if ! grep -q "update_check=" "&plugin;/settings.cfg"; then
         echo "update_check=true" >> "&plugin;/settings.cfg"
       fi
 
-      #Check if lucky Package is already downloaded
       check
 
-      #Install lucky Package
-      if [ ! -f /etc/lucky/lucky ]; then # Check if lucky is already installed
+      if [ ! -f /etc/lucky/lucky ]; then
         echo
-        echo "-----------------Installing lucky Package v$(echo $LAT_PACKAGE | cut -d &apos;-&apos; -f3)-------------------"
+        echo "-----------------Installing lucky Package v$(echo $LAT_PACKAGE | cut -d '-' -f3)-------------------"
         install_package > /dev/null
         activate
       else
@@ -206,7 +180,6 @@ update_check=true' > "&plugin;/settings.cfg"
       echo "---------------------------------------"
       echo "------Uninstalling lucky-------"
       echo "---------------------------------------"
-      # Remove plugin related files
       PID=$(pidof lucky)
       if [ ! -z "$PID" ]; then
         echo "Lucky process is running. Stopping it..."
