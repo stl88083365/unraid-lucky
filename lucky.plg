@@ -52,7 +52,7 @@
   <FILE Run="/bin/bash">
     <INLINE>
       download() {
-        #Download lucky Package
+        # Download lucky Package
         if wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}" "${DL_URL}" ; then
           # MD5 check might need adjustment if releases don&apos;t provide .md5 files
           # wget -q -nc --show-progress --progress=bar:force:noscroll -O "&packages;/${LAT_PACKAGE}.md5" "${DL_URL}/${LAT_PACKAGE}.md5"
@@ -77,6 +77,7 @@
         set -x # Enable debugging
         # Fetch latest release info
         LATEST_RELEASE_INFO=$(curl -s -v -L -H "Accept: application/vnd.github.v3+json" -H "User-Agent: unraid-lucky-plugin" "https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest")
+        echo "LATEST_RELEASE_INFO: $LATEST_RELEASE_INFO"
 
         if [ -z "$LATEST_RELEASE_INFO" ]; then
           echo "Error: Failed to fetch release info from GitHub API. Check network or API limits."
@@ -84,26 +85,32 @@
           exit 1
         fi
 
-        # Try to find .txz asset in releases
-       # if [ -n "$LATEST_RELEASE_INFO" ]; then
-       #   DL_URL=$(echo "$LATEST_RELEASE_INFO" | awk '/"name":/ && \.txz"/ {found=1} found && /"browser_download_url":/ {for(i=1;i<=NF;i++) if($i ~ /http/) print $i; exit}')
-       #   echo "DL_URL from releases: $DL_URL"
-       #   if [ -n "$DL_URL" ]; then
-       #     LAT_PACKAGE=$(basename "$DL_URL")
-       #     echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
-       #   fi
-       # fi
-
-        if [ -z "$LAT_PACKAGE" ]; then
-          if [ -z "$CUR_V" ]; then
-            echo
-            echo "-----ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR - ERROR------"
-            echo "---Can&apos;t get latest lucky version and found no installed local lucky---"
-            rm -rf &plugin; &emhttp;
-            exit 1
-          else
-            LAT_PACKAGE=${CUR_V}
+        # Try to find .txz asset in releases，参考 nvidia-vgpu-driver.plg 逻辑
+        DL_URL=""
+        LAT_PACKAGE=""
+        if [ -n "$LATEST_RELEASE_INFO" ]; then
+          # 只处理 assets 块，逐行查找
+          in_assets=0
+          found=0
+          while IFS= read -r line; do
+            if echo "$line" | grep -q '"assets"'; then
+              in_assets=1
+            fi
+            if [ $in_assets -eq 1 ] && echo "$line" | grep -q '"name"[ ]*:[ ]*".*\.txz"'; then
+              found=1
+            fi
+            if [ $in_assets -eq 1 ] && [ $found -eq 1 ] && echo "$line" | grep -q '"browser_download_url"'; then
+              DL_URL=$(echo "$line" | awk -F'"' '{print $4}')
+              break
+            fi
+          done <<< "$LATEST_RELEASE_INFO"
+          if [ -n "$DL_URL" ]; then
+            LAT_PACKAGE=$(basename "$DL_URL")
           fi
+        fi
+        echo "DL_URL from releases: $DL_URL"
+        if [ -n "$DL_URL" ]; then
+          echo "LAT_PACKAGE from releases: $LAT_PACKAGE"
         fi
         set +x # Disable debugging
       }
